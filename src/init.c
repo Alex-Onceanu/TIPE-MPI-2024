@@ -5,6 +5,9 @@
 #include <GLES2/gl2.h>
 #include <emscripten/html5.h>
 
+// TODO : écrire son propre load_image avec ppm
+#include "./lib/stb_image/stb_image.h"
+
 unsigned int compile_shader(unsigned int type, const char *source)
 {
     unsigned int id = glCreateShader(type);
@@ -58,6 +61,59 @@ char *read_shader(const char *filename)
     fclose(shader_file);
 
     return res;
+}
+
+void init_texture(unsigned int program)
+{
+    // Pas la peine, GL_REPEAT est bien et est par défaut
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+
+    FILE *fichier = fopen("../res/textures/grass.png", "r");
+
+    if (fichier == NULL)
+    {
+        printf("Pas d'ouverture du tout !\n");
+    }
+
+    fclose(fichier);
+
+    int width, height, nrChannels;
+    stbi_set_flip_vertically_on_load(1);
+    unsigned char *data = stbi_load("../res/textures/grass.png", &width, &height, &nrChannels, 0);
+
+    if (!data)
+    {
+        printf("ERR : l'image png n'a pu être chargée : data = %s\n", data);
+        printf("%s\n", stbi_failure_reason());
+    }
+    else
+    {
+        printf("l'image a pu être chargée !\n");
+    }
+
+    // Chaque texture chargée est associée à un uint, qu'on stocke dans un
+    // unsigned int[], ici comme il y en a 1 seul on envoie &texture
+    unsigned int texture;
+    // Génération du texture object
+    glGenTextures(1, &texture);
+
+    glActiveTexture(GL_TEXTURE0); // Activer texture unit
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    // On attache une image 2d à un texture object
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+    // Voir définition d'un mipmap
+    glGenerateMipmap(GL_TEXTURE_2D); // INVALID_OPERATION
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glUniform1i(glGetUniformLocation(program, "u_Texture"), 0);
+
+    // équivalent à juste écrire free(data)
+    stbi_image_free(data);
 }
 
 unsigned int init()

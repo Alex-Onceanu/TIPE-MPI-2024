@@ -7,8 +7,6 @@
 #include "init.h"
 #include "maths.h"
 
-#include "./lib/stb_image/stb_image.h"
-
 #define PI 3.141592653589793
 
 #define NB_VERTEX 32
@@ -24,7 +22,7 @@ struct app_data
     unsigned int program;
     int compt;
     int step;
-    matrix_p *transformation;
+    mat4_p *transformation;
 };
 
 void debug()
@@ -35,6 +33,7 @@ void debug()
 
     while (error != GL_NO_ERROR)
     {
+        printf("!!\n");
         printf("%d\n", error);
         error = glGetError();
     }
@@ -46,12 +45,12 @@ EM_BOOL mainloop(double time, void *userData)
 {
     // Ruse de sioux, métamorphose d'un void* en struct app_data
     struct app_data *app = (struct app_data *)userData;
-    // if (app->compt % 100 == 0 && app->compt != 0)
-    // {
-    //     app->step *= -1;
-    //     mat_scalaire(app->transformation[1], -1.0);
-    // }
-    app->compt %= 200;
+    if (app->compt % 100 == 0 && app->compt != 0)
+    {
+        app->step *= -1;
+        mat4_scalaire_inplace(app->transformation[1], -1.0);
+    }
+    // app->compt %= 200;
 
     app->compt += app->step;
     float brightness = abs(app->compt) / 100.0;
@@ -60,16 +59,12 @@ EM_BOOL mainloop(double time, void *userData)
     glUniform4f(u_Brightness, brightness, brightness, brightness, 1.0);
 
     float theta = PI * (app->compt / 100.0);
-    mat_ajoute(app->transformation[0], *app->transformation[1]);
-    // mat_affiche(app->transformation[0]);
+    mat4_ajoute_inplace(app->transformation[0], *app->transformation[1]);
+    // mat4_affiche(*app->transformation[0]);
 
-    mat_set_theta_y_4(app->transformation[0], theta);
-    int u_Transform = glGetUniformLocation(app->program, "u_Transform");
-    glUniformMatrix4fv(u_Transform, 1, GL_FALSE, mat_get(app->transformation[0]));
-
-    // mat_free(tmp);
-    // mat_free(tmp2);
-    // mat_free(app->transformation[0]);
+    mat4_set_theta_y(app->transformation[0], theta);
+    int u_Model = glGetUniformLocation(app->program, "u_Model");
+    glUniformMatrix4fv(u_Model, 1, GL_FALSE, mat4_get(app->transformation[0]));
 
     // Clear
     glClearColor(0.1, 0.1, 0.1, 1.0);
@@ -79,64 +74,6 @@ EM_BOOL mainloop(double time, void *userData)
     glDrawElements(GL_TRIANGLES, NB_INDEX, GL_UNSIGNED_INT, NULL);
 
     return EM_TRUE;
-}
-
-void init_texture(unsigned int program)
-{
-    // Pas la peine, GL_REPEAT est bien et est par défaut
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-
-    FILE *fichier = fopen("../res/textures/grass.png", "r");
-
-    if (fichier == NULL)
-    {
-        printf("Pas d'ouverture du tout !\n");
-    }
-    else
-    {
-        printf("Ben oui c'est bon\n");
-    }
-
-    fclose(fichier);
-
-    int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(1);
-    unsigned char *data = stbi_load("../res/textures/grass.png", &width, &height, &nrChannels, 0);
-
-    if (!data)
-    {
-        printf("ERR : l'image png n'a pu être chargée : data = %s\n", data);
-        debug();
-        printf("%s\n", stbi_failure_reason());
-    }
-    else
-    {
-        printf("l'image a pu être chargée !\n");
-    }
-
-    // Chaque texture chargée est associée à un uint, qu'on stocke dans un
-    // unsigned int[], ici comme il y en a 1 seul on envoie &texture
-    unsigned int texture;
-    // Génération du texture object
-    glGenTextures(1, &texture);
-
-    glActiveTexture(GL_TEXTURE0); // Activer texture unit
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    // On attache une image 2d à un texture object
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-
-    // Voir définition d'un mipmap
-    glGenerateMipmap(GL_TEXTURE_2D); // INVALID_OPERATION
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glUniform1i(glGetUniformLocation(program, "u_Texture"), 0);
-
-    // équivalent à juste écrire free(data)
-    stbi_image_free(data);
 }
 
 // S'occupe de tous les free
@@ -159,7 +96,15 @@ int main()
         0.5, -0.433, -0.286, 0.0, 1.0, 0.0, 0.5, 0.0,
         0.0, 0.433, 0.0, 1.0, 1.0, 1.0, 0.5, 1.0,
         0.0, -0.433, 0.577, 0.0, 0.0, 1.0, 1.0, 0.0};
-    // 0.5, 0.5, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0};
+
+    // trouver des coordonnees de monde a mettre a la pyramide puis tester proj
+
+    // float vertex[NB_VERTEX] = {
+    //     // x, y, z, r, g, b, tex_x, tex_y
+    //     500.0, 0.0, 400.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+    //     1500.0, 0.0, 400.0, 0.0, 1.0, 0.0, 0.5, 0.0,
+    //     1000.0, 1558.6, 800.0, 1.0, 1.0, 1.0, 0.5, 1.0,
+    //     1000.0, 0.0, 1200.0, 0.0, 0.0, 1.0, 1.0, 0.0};
 
     // Vertex buffer, on envoie à OpenGL les données du triangle
     unsigned int triang_buf;
@@ -183,7 +128,7 @@ int main()
         0, 1, 2, 1, 3, 2, 0, 3, 2, 0, 1, 3};
     // 0, 1, 2, 1, 3, 2, 3, 0, 2};
 
-    // Bind et interprétation du index_buffer
+    // Bind et interprétationß du index_buffer
     unsigned int ind_buf;
     glGenBuffers(1, &ind_buf);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ind_buf);
@@ -196,37 +141,35 @@ int main()
     app->program = program;
     app->compt = 0;
     app->step = -1;
-    app->transformation = malloc(NB_MAT * sizeof(matrix_p));
+    app->transformation = malloc(NB_MAT * sizeof(mat4_p));
 
     for (int i = 0; i < NB_MAT; ++i)
     {
-        app->transformation[i] = mat_id(4);
+        app->transformation[i] = mat4_id_p();
     }
 
     glEnable(GL_DEPTH_TEST);
 
-    // projection
-    // float n = 1.1;
-    // float f = 4.0;
-    // matrix_p projj = mat_id(4);
-    // mat_scalaire(projj, n);
-    // projj->coefs[10] = n + f;
-    // projj->coefs[11] = -n * f;
-    // projj->coefs[14] = 1.0;
-    // projj->coefs[15] = 0.0;
-    // int u_Proj = glGetUniformLocation(app->program, "u_Proj");
-    // glUniformMatrix4fv(u_Proj, 1, GL_FALSE, mat_get(projj));
-    // mat_affiche(projj);
+    // Matrice view : déplacements de la caméra dans le sens inverse
+    mat4_t view = mat4_id_t();
+    int u_View = glGetUniformLocation(app->program, "u_View");
+    glUniformMatrix4fv(u_View, 1, GL_FALSE, view.coefs);
+
+    mat4_t proj = projection();
+    int u_Proj = glGetUniformLocation(app->program, "u_Proj");
+    glUniformMatrix4fv(u_Proj, 1, GL_FALSE, proj.coefs);
 
     // /* pour obtenir la matrice de translation 3d
     // 0 0 0 kx
     // 0 0 0 ky
     // 0 0 0 kz
     // 0 0 0 0 */
-    app->transformation[1] = translation_3(0.00, 0.00, 0.00);
-    mat_scalaire(app->transformation[0], -1);
-    mat_ajoute(app->transformation[1], *app->transformation[0]);
-    mat_scalaire(app->transformation[0], -1);
+    // *app->transformation[1] = translation(-0.008, 0.005, 0.001);
+    *app->transformation[0] = translation(-0.000, 0.000, -10.0);
+    *app->transformation[1] = translation(0.008, 0.000, 0.040);
+    mat4_ajoute_inplace(app->transformation[1], mat4_scalaire(mat4_id_t(), -1));
+
+    debug();
 
     // Le mainloop est ici
     emscripten_request_animation_frame_loop(mainloop, (void *)app);
