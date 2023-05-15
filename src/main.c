@@ -9,9 +9,9 @@
 
 #define PI 3.141592653589793
 
-#define NB_VERTEX 32
+#define NB_VERTEX 48
 #define NB_ATTRIBS_PAR_VERTEX 8
-#define NB_INDEX 12
+#define NB_INDEX 18
 #define NB_MAT 2
 
 // Une instance unique de cette structure est créée à l'initialisation de l'app
@@ -90,21 +90,20 @@ int main()
     unsigned int program = init();
 
     // Triangle ici, 3 sommets (vertex) 3d (1 ligne = 1 vertex)
-    float vertex[NB_VERTEX] = {
-        // x, y, z, r, g, b, tex_x, tex_y
-        -0.5, -0.433, -0.286, 1.0, 0.0, 0.0, 0.0, 0.0,
-        0.5, -0.433, -0.286, 0.0, 1.0, 0.0, 0.5, 0.0,
-        0.0, 0.433, 0.0, 1.0, 1.0, 1.0, 0.5, 1.0,
-        0.0, -0.433, 0.577, 0.0, 0.0, 1.0, 1.0, 0.0};
-
-    // trouver des coordonnees de monde a mettre a la pyramide puis tester proj
-
     // float vertex[NB_VERTEX] = {
     //     // x, y, z, r, g, b, tex_x, tex_y
-    //     500.0, 0.0, 400.0, 1.0, 0.0, 0.0, 0.0, 0.0,
-    //     1500.0, 0.0, 400.0, 0.0, 1.0, 0.0, 0.5, 0.0,
-    //     1000.0, 1558.6, 800.0, 1.0, 1.0, 1.0, 0.5, 1.0,
-    //     1000.0, 0.0, 1200.0, 0.0, 0.0, 1.0, 1.0, 0.0};
+    //     -0.5, -0.433, -0.286, 1.0, 0.0, 0.0, 0.0, 0.0,
+    //     0.5, -0.433, -0.286, 0.0, 1.0, 0.0, 0.5, 0.0,
+    //     0.0, 0.433, 0.0, 1.0, 1.0, 1.0, 0.5, 1.0,
+    //     0.0, -0.433, 0.577, 0.0, 0.0, 1.0, 1.0, 0.0};
+    float vertex[NB_VERTEX] = {
+        // x, y, z, r, g, b, tex_x, tex_y
+        -0.5, -0.5, -0.5, 1.0, 0.0, 0.0, 1.0, 0.5,
+        0.5, -0.5, -0.5, 0.0, 1.0, 0.0, 0.666, 1.0,
+        0.0, 0.5, 0.0, 1.0, 1.0, 1.0, 0.333, 0.5,
+        -0.5, -0.5, 0.5, 0.0, 0.0, 1.0, 0.666, 0.0,
+        0.5, -0.5, 0.5, 1.0, 1.0, 0.0, 0.0, 1.0,
+        0.5, -0.5, 0.5, 1.0, 1.0, 0.0, 0.0, 0.0};
 
     // Vertex buffer, on envoie à OpenGL les données du triangle
     unsigned int triang_buf;
@@ -125,7 +124,8 @@ int main()
 
     // Index buffer, pour éviter les doublons de vertex
     unsigned int indices[NB_INDEX] = {
-        0, 1, 2, 1, 3, 2, 0, 3, 2, 0, 1, 3};
+        0, 1, 2, 1, 4, 2, 5, 3, 2, 3, 0, 2, 0, 1, 4, 0, 4, 3};
+    // 0, 1, 2, 1, 3, 2, 0, 3, 2, 0, 1, 3};
     // 0, 1, 2, 1, 3, 2, 3, 0, 2};
 
     // Bind et interprétationß du index_buffer
@@ -159,14 +159,14 @@ int main()
     int u_Proj = glGetUniformLocation(app->program, "u_Proj");
     glUniformMatrix4fv(u_Proj, 1, GL_FALSE, proj.coefs);
 
-    // /* pour obtenir la matrice de translation 3d
+    // /* pour obtenir la matrice "d'ajout de translation" 3d :
     // 0 0 0 kx
     // 0 0 0 ky
     // 0 0 0 kz
     // 0 0 0 0 */
     // *app->transformation[1] = translation(-0.008, 0.005, 0.001);
     *app->transformation[0] = translation(-0.000, 0.000, -10.0);
-    *app->transformation[1] = translation(0.008, 0.000, 0.040);
+    *app->transformation[1] = translation(-0.005, 0.000, -0.03);
     mat4_ajoute_inplace(app->transformation[1], mat4_scalaire(mat4_id_t(), -1));
 
     debug();

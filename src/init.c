@@ -69,18 +69,9 @@ void init_texture(unsigned int program)
     // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
     // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 
-    FILE *fichier = fopen("../res/textures/grass.png", "r");
-
-    if (fichier == NULL)
-    {
-        printf("Pas d'ouverture du tout !\n");
-    }
-
-    fclose(fichier);
-
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(1);
-    unsigned char *data = stbi_load("../res/textures/grass.png", &width, &height, &nrChannels, 0);
+    unsigned char *data = stbi_load("../res/textures/obamid.png", &width, &height, &nrChannels, 0);
 
     if (!data)
     {
