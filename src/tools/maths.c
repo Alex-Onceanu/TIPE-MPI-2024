@@ -3,6 +3,11 @@
 
 #include "maths.h"
 
+int randint(int a, int b)
+{
+    return rand() % (b - a) + a;
+}
+
 mat4_p mat4_id_p()
 {
     mat4_p res = malloc(sizeof(mat4_t));

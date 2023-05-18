@@ -3,6 +3,8 @@
 
 #include <math.h>
 
+int randint(int a, int b);
+
 // _______________________________Matrice________________________________
 
 // Matrice 4x4

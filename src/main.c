@@ -4,27 +4,15 @@
 #include <GLES2/gl2.h>
 #include <emscripten/html5.h>
 
-#include "init.h"
-#include "maths.h"
+#include "modelisation/init.h"
+#include "tools/maths.h"
+#include "tools/constantes.h"
+#include "world.h"
 
-#define PI 3.141592653589793
+// Cette "constante" globale stockera l'ID OPENGL representant le programme
+unsigned int PROGRAM_ID = 0;
 
-#define NB_VERTEX 48
-#define NB_ATTRIBS_PAR_VERTEX 8
-#define NB_INDEX 18
-#define NB_MAT 2
-
-// Une instance unique de cette structure est créée à l'initialisation de l'app
-// On envoie au mainloop un pointeur vers cette instance, qui contient tout
-// ce qui est nécessaire à garder en mémoire entre les frames
-struct app_data
-{
-    unsigned int program;
-    int compt;
-    int step;
-    mat4_p *transformation;
-};
-
+// Affiche les erreurs de shader et OpenGL
 void debug()
 {
     // 1282 -> GL_INVALID_OPERATION
@@ -39,7 +27,71 @@ void debug()
     }
 }
 
+#if 1
+
 // Une seule itération de la boucle principale
+// Cette fonction est appelée 60 fois par seconde, correspond à 1 frame
+EM_BOOL mainloop(double time, void *userData)
+{
+    // Ruse de sioux, métamorphose d'un void* en world_p
+    world_p world = (world_p)userData;
+
+    // Process input
+    world_process_input(world);
+    // Update
+    world_update(world);
+
+    // Clear
+    glClearColor(0.5294117, 0.807843, 0.980392, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Draw
+    world_draw(world);
+
+    return EM_TRUE;
+}
+
+int main()
+{
+    // init s'occupe de toutes les initialisations uniques nécessaires
+    PROGRAM_ID = init();
+    // init_texture s'occupe des initialisations liees aux textures...
+    init_texture(PROGRAM_ID);
+
+    glEnable(GL_DEPTH_TEST);
+
+    // Matrice view : déplacements de la caméra dans le sens inverse
+    // Bloc a encapsuler dans le controlleur de camera !!!
+    mat4_t view = mat4_id_t();
+    int u_View = glGetUniformLocation(PROGRAM_ID, "u_View");
+    glUniformMatrix4fv(u_View, 1, GL_FALSE, view.coefs);
+
+    // Matrice projection, reste constante donc autant la faire maintenant
+    mat4_t proj = projection();
+    int u_Proj = glGetUniformLocation(PROGRAM_ID, "u_Proj");
+    glUniformMatrix4fv(u_Proj, 1, GL_FALSE, proj.coefs);
+
+    debug();
+
+    // Instanciation de world (instance principale)
+    // Sera parametre de mainloop sous forme de void*
+    world_p world = world_init();
+
+    // Le mainloop est ici
+    emscripten_request_animation_frame_loop(mainloop, (void *)world);
+
+    //  ??? Comment free sur emscripten ? Ou le placer dans le destructeur de World ?
+    // glDeleteProgram(PROGRAM_ID);
+
+    return 0;
+}
+
+#else
+
+#define NB_VERTEX 48
+#define NB_ATTRIBS_PAR_VERTEX 8
+#define NB_INDEX 18
+
 // Cette fonction est appelée 60 fois par seconde, correspond à 1 frame
 EM_BOOL mainloop(double time, void *userData)
 {
@@ -76,17 +128,9 @@ EM_BOOL mainloop(double time, void *userData)
     return EM_TRUE;
 }
 
-// S'occupe de tous les free
-void destructeur(struct app_data *app)
-{
-    glDeleteProgram(app->program);
-    free(app);
-}
-
 int main()
 {
     // init s'occupe de toutes les initialisations uniques nécessaires
-    // surtout pour tout ce qui traite des shaders
     unsigned int program = init();
 
     // Triangle ici, 3 sommets (vertex) 3d (1 ligne = 1 vertex)
@@ -128,7 +172,7 @@ int main()
     // 0, 1, 2, 1, 3, 2, 0, 3, 2, 0, 1, 3};
     // 0, 1, 2, 1, 3, 2, 3, 0, 2};
 
-    // Bind et interprétationß du index_buffer
+    // Bind et interprétation du index_buffer
     unsigned int ind_buf;
     glGenBuffers(1, &ind_buf);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ind_buf);
@@ -178,3 +222,5 @@ int main()
 
     return 0;
 }
+
+#endif

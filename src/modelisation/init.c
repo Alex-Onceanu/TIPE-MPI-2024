@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include <GLES2/gl2.h>
 #include <emscripten/html5.h>
 
 // TODO : écrire son propre load_image avec ppm
-#include "./lib/stb_image/stb_image.h"
+#include "../tools/stb_image/stb_image.h"
 
 unsigned int compile_shader(unsigned int type, const char *source)
 {
@@ -69,9 +70,9 @@ void init_texture(unsigned int program)
     // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
     // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 
-    int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(1);
-    unsigned char *data = stbi_load("../res/textures/obamid.png", &width, &height, &nrChannels, 0);
+    int width, height, nrChannels;
+    unsigned char *data = stbi_load("./res/textures/dice.png", &width, &height, &nrChannels, 0);
 
     if (!data)
     {
@@ -93,13 +94,13 @@ void init_texture(unsigned int program)
     glBindTexture(GL_TEXTURE_2D, texture);
 
     // On attache une image 2d à un texture object
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 
     // Voir définition d'un mipmap
     glGenerateMipmap(GL_TEXTURE_2D); // INVALID_OPERATION
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     glUniform1i(glGetUniformLocation(program, "u_Texture"), 0);
 
@@ -109,6 +110,8 @@ void init_texture(unsigned int program)
 
 unsigned int init()
 {
+    srand(time(NULL));
+
     // initialisation de EmscriptenWebGLContextAttributes
     EmscriptenWebGLContextAttributes attr;
     emscripten_webgl_init_context_attributes(&attr);
@@ -126,8 +129,6 @@ unsigned int init()
 
     unsigned int shader = create_program(vs_source, fs_source);
     glUseProgram(shader);
-
-    // Target infinite loop ?
 
     free(vs_source);
     free(fs_source);
