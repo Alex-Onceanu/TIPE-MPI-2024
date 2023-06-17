@@ -13,7 +13,7 @@ typedef struct entity
 
     // Methodes, en tant que pointeurs vers des fonctions
 
-    void (*process_input)(struct entity *);
+    void (*process_input)(struct entity *, void *data);
     void (*update)(struct entity *);
     void (*draw)(struct entity *);
 } entity_t, *entity_p;

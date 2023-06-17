@@ -8,13 +8,13 @@
 // Les 3 fonctions des entity de base
 // Appellent leur equivalent pour chacun des controlleurs de l'entity
 
-void entity_process_input(entity_p this)
+void entity_process_input(entity_p this, void *data)
 {
     const int n = vector_len(this->controllers);
     for (int i = 0; i < n; ++i)
     {
         controller_p c = (controller_p)(vector_get_at(this->controllers, i));
-        c->process_input(c);
+        c->process_input(c, data);
     }
 }
 

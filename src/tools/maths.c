@@ -5,7 +5,19 @@
 
 int randint(int a, int b)
 {
-    return rand() % (b - a) + a;
+    return (rand() % (1 + b - a)) + a;
+}
+
+void Clamp(float *x, float min_x, float max_x)
+{
+    if (*x > max_x)
+    {
+        *x = max_x;
+    }
+    else if (*x < min_x)
+    {
+        *x = min_x;
+    }
 }
 
 mat4_p mat4_id_p()
@@ -103,6 +115,8 @@ mat4_t mat4_scalaire(const mat4_t m, const float k)
 
 mat4_t mat4_produit(const mat4_t m1, const mat4_t m2)
 {
+    // TODO : algo de Strassen pour la multiplication
+
     mat4_t res;
 
     for (int i = 0; i < 4; ++i)
@@ -116,8 +130,6 @@ mat4_t mat4_produit(const mat4_t m1, const mat4_t m2)
             }
         }
     }
-
-    mat4_affiche(res);
 
     return res;
 }
@@ -153,6 +165,83 @@ mat4_t scaling(const float kx, const float ky, const float kz)
     res.coefs[0] = kx;
     res.coefs[5] = ky;
     res.coefs[10] = kz;
+
+    return res;
+}
+
+// m doit etre de la forme
+// 0 1 2
+// 3 4 5
+// 6 7 8
+#define DET3(m) (m[0] * m[4] * m[8] + m[1] * m[5] * m[6] + m[2] * m[3] * m[7]) - (m[6] * m[4] * m[2] + m[7] * m[5] * m[0] + m[8] * m[3] * m[1])
+
+mat4_t mat4_inverse(const mat4_t m)
+{
+    // Soyons fous, inversons une matrice 4x4
+    // Algo : comatrice
+    // CET ALGO MARCHE NE MARCHE QUE SUR DES MATRICES DE LA FORME
+    // a b c x
+    // d e f y
+    // g h i z
+    // 0 0 0 1
+    // Parce qu'on va développer suivant la dernière ligne
+    // mat4_affiche(m);
+    // printf("\n");
+
+    float c1[9] = {m.coefs[0], m.coefs[1], m.coefs[2],
+                   m.coefs[4], m.coefs[5], m.coefs[6],
+                   m.coefs[8], m.coefs[9], m.coefs[10]};
+
+    // for (int y = 0; y < 3; ++y)
+    // {
+    //     for (int x = 0; x < 3; ++x)
+    //     {
+    //         printf(" %d : %2f", 3 * y + x, c1[3 * y + x]);
+    //     }
+    //     printf("\n");
+    // }
+    // printf("%f * %f * %f  = %f\n", c1[8], c1[3], c1[1], c1[8] * c1[3] * c1[1]);
+
+    // d = det m
+    float d = DET3(c1);
+    if (d <= 0.0001 && d >= -0.0001)
+    {
+        printf("/!/ Matrice non inversible\n");
+        return mat4_id_t();
+    }
+
+    mat4_t com;
+    for (int y = 0; y < 4; ++y)
+    {
+        for (int x = 0; x < 4; ++x)
+        {
+            // Construction de la matrice dont le determinant est le cofacteur en (y, x) de m
+            float c2[9];
+            int compt = 0;
+            for (int i = 0; i < 4; ++i)
+            {
+                for (int j = 0; j < 4; ++j)
+                {
+                    if (i == y || j == x)
+                        continue;
+                    c2[compt++] = m.coefs[4 * i + j];
+                }
+            }
+            com.coefs[4 * y + x] = (DET3(c2));
+            if ((y + x) % 2 == 1)
+                com.coefs[4 * y + x] *= (-1);
+        }
+    }
+
+    mat4_t res = mat4_scalaire(mat4_transpose(com), 1.0 / d);
+    // printf("Avant : \n");
+    // mat4_affiche(m);
+    // printf("Comatrice : \n");
+    // mat4_affiche(com);
+    // printf("Res : \n");
+    // mat4_affiche(res);
+    // printf("produit : \n");
+    // mat4_affiche(mat4_produit(res, m));
 
     return res;
 }
@@ -217,6 +306,7 @@ void mat4_set_theta_z(mat4_p m, const float theta)
     m->coefs[5] = cos(theta);
 }
 
+// fun fact : cette fonction ne sert littéralement à rien mais on l'aime quand meme
 mat4_t ortho(const float x_min, const float x_max, const float y_min, const float y_max, const float z_min, const float z_max)
 {
     mat4_t res = mat4_id_t();
@@ -245,7 +335,7 @@ mat4_t projection()
     float fov = 3.14159 / 6.0;
     float n = 1.0 / tan(fov / 2.0);
     float aspect = 1.0;
-    float f = 20.0;
+    float f = 40.0;
 
     mat4_t res = mat4_id_t();
 

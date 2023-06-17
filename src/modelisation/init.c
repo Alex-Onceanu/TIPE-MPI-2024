@@ -6,17 +6,13 @@
 #include <GLES2/gl2.h>
 #include <emscripten/html5.h>
 
-// TODO : écrire son propre load_image avec ppm
-#include "../tools/stb_image/stb_image.h"
+#include "../tools/reader.h"
 
 unsigned int compile_shader(unsigned int type, const char *source)
 {
     unsigned int id = glCreateShader(type);
     glShaderSource(id, 1, &source, NULL);
     glCompileShader(id);
-
-    // Gestion d'erreurs à faire ?
-    // Peut-être pas la peine, tout s'écrit automatiquement dans la console
 
     return id;
 }
@@ -70,18 +66,17 @@ void init_texture(unsigned int program)
     // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
     // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 
-    stbi_set_flip_vertically_on_load(1);
     int width, height, nrChannels;
-    unsigned char *data = stbi_load("./res/textures/dice.png", &width, &height, &nrChannels, 0);
+    unsigned char *data = read_ppm("./res/textures/dice.ppm", &width, &height);
 
     if (!data)
     {
         printf("ERR : l'image png n'a pu être chargée : data = %s\n", data);
-        printf("%s\n", stbi_failure_reason());
+        // printf("%s\n", stbi_failure_reason());
     }
     else
     {
-        printf("l'image a pu être chargée !\n");
+        printf("l'image a pu être chargée : yooopi !\n");
     }
 
     // Chaque texture chargée est associée à un uint, qu'on stocke dans un
@@ -97,15 +92,14 @@ void init_texture(unsigned int program)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 
     // Voir définition d'un mipmap
-    glGenerateMipmap(GL_TEXTURE_2D); // INVALID_OPERATION
+    glGenerateMipmap(GL_TEXTURE_2D);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     glUniform1i(glGetUniformLocation(program, "u_Texture"), 0);
 
-    // équivalent à juste écrire free(data)
-    stbi_image_free(data);
+    free(data);
 }
 
 unsigned int init()

@@ -3,7 +3,11 @@
 
 #include <math.h>
 
+// Renvoie un nombre aleatoire de [| a, b |]
 int randint(int a, int b);
+
+// Fait en sorte que x reste dans [| min_x, max_x |]
+void Clamp(float *x, float min_x, float max_x);
 
 // _______________________________Matrice________________________________
 
@@ -52,6 +56,9 @@ mat4_t mat4_produit(const mat4_t m1, const mat4_t m2);
 
 // transposition
 mat4_t mat4_transpose(const mat4_t m);
+
+// Inversion
+mat4_t mat4_inverse(const mat4_t m);
 
 // ______________________________Applications___________________________________
 

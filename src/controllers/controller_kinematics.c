@@ -7,7 +7,7 @@
 #include "../tools/maths.h"
 
 // Ne fait rien.
-void id2(controller_p c) { return; }
+void id2(controller_p c, void *data) { return; }
 
 void controller_kinematics_update(controller_p this)
 {
@@ -31,13 +31,17 @@ void controller_kinematics_update(controller_p this)
 void controller_kinematics_draw(controller_p this)
 {
     controller_kinematics_p this2 = (controller_kinematics_p)this;
-    mat4_t transform = translation(this2->x, this2->y, this2->z);
 
-    // Pour gerer les autres axes faire des produits de matrices...
-    mat4_set_theta_x(&transform, -this2->theta_y);
+    // tr est la matrice de transformation de l'ensemble des translations que va subir l'objet
+    // En fait il va juste subir la translation qui l'emmene de (0,0,0) à sa position actuelle
+    mat4_t tr = translation(this2->x, this2->y, this2->z);
+    int u_Translation = glGetUniformLocation(PROGRAM_ID, "u_Translation");
+    glUniformMatrix4fv(u_Translation, 1, GL_FALSE, mat4_get(&tr));
 
-    int u_Model = glGetUniformLocation(PROGRAM_ID, "u_Model");
-    glUniformMatrix4fv(u_Model, 1, GL_FALSE, mat4_get(&transform));
+    // rotation est la matrice de transformation de l'ensemble des rotations (donc produit pour tous les axes)
+    mat4_t rotation = mat4_produit(rotation_z_4(this2->theta_x), mat4_produit(rotation_x_4(this2->theta_y), rotation_z_4(this2->theta_z)));
+    int u_Rotation = glGetUniformLocation(PROGRAM_ID, "u_Rotation");
+    glUniformMatrix4fv(u_Rotation, 1, GL_FALSE, mat4_get(&rotation));
 }
 
 controller_kinematics_p Controller_kinematics(float x0, float y0, float z0, float theta_x0, float theta_y0, float theta_z0)

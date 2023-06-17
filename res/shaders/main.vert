@@ -1,13 +1,16 @@
-attribute vec4 position;
+attribute vec3 position;
 attribute vec3 a_Color;
-attribute vec2 a_TexCoords;
 
-uniform mat4 u_Model;
+uniform mat4 u_Translation;
+uniform mat4 u_Rotation;
 uniform mat4 u_View;
 uniform mat4 u_Proj;
-varying vec2 v_TexCoords;
+
+varying vec3 v_Color;
+varying vec3 v_Normal;
 
 void main() {
-    gl_Position = position * u_Model * u_View * u_Proj;
-    v_TexCoords = a_TexCoords;
+    gl_Position = vec4(position, 1.0) * (u_Rotation * u_Translation) * u_View * u_Proj;
+    v_Color = a_Color;
+    v_Normal = vec3(vec4(normalize(position), 1.0) * (-u_Rotation));
 }

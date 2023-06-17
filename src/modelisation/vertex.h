@@ -10,11 +10,12 @@
 // Destiné à être alloué sur la pile
 typedef struct vertex
 {
-    // x, y, z, tex_x, tex_y
+    // x, y, z, r, g, b
     float data[NB_ATTRIBUTES_VERTEX];
 } vertex_t;
 
 // "Constructeur" (mais sur la pile...)
-vertex_t Vertex(float x, float y, float z, float tex_x, float tex_y);
+// (x, y, z) sont des coordonnées LOCALES par rapport au "centre de l'objet" (0, 0, 0)
+vertex_t Vertex(float x, float y, float z, float r, float g, float b);
 
 #endif
