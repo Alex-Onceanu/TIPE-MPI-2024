@@ -123,13 +123,14 @@ void controller_camera_update(controller_p this)
     this2->y += this2->v_y * coef;
     this2->z += this2->v_z * coef * cos(this2->theta_x) - this2->v_x * sin(-this2->theta_x);
 
+    Clamp(&(this2->y), -0.0, 40.0);
+
     if (!this2->clicks || (this2->old_mouse_x == 0.0 && this2->old_mouse_y == 0.0) || (this2->mouse_x - this2->old_mouse_x <= 0.0001 && this2->mouse_x - this2->old_mouse_x >= -0.0001))
         return;
 
     this2->theta_x += 0.2 * PI * (this2->mouse_x - this2->old_mouse_x) * coef;
     this2->theta_y += 0.2 * PI * (this2->mouse_y - this2->old_mouse_y) * coef;
 
-    Clamp(&(this2->y), -0.0, 40.0);
     Clamp(&(this2->theta_y), 0.0, PI / 3.0);
 }
 
