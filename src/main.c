@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <GLES2/gl2.h>
 #include <emscripten/html5.h>
@@ -29,11 +30,22 @@ void debug()
 }
 
 world_p world;
+double old_time = 0.0;
+double time_between_frames = 0.0; // en ms
+double target_time = 1.0 / 30.0;
 
 // Une seule itération de la boucle principale
 // Cette fonction est appelée 60 fois par seconde, correspond à 1 frame
 EM_BOOL mainloop(double time, void *userData)
 {
+    time_between_frames = time - old_time;
+    old_time = time;
+    // printf("%f\n", time_between_frames);
+    if (time_between_frames < target_time)
+    {
+        sleep((unsigned int)(target_time - time_between_frames));
+    }
+
     // Process input
     world_process_input(world);
 

@@ -18,6 +18,7 @@ typedef struct controller_camera
     bool clicks;
     float mouse_x, mouse_y;
     float old_mouse_x, old_mouse_y;
+    double old_time;
 } controller_camera_t, *controller_camera_p;
 
 // Constructeur

@@ -1,4 +1,6 @@
+#include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "controller_camera.h"
 #include "../tools/maths.h"
@@ -108,21 +110,28 @@ void controller_camera_update(controller_p this)
 {
     controller_camera_p this2 = (controller_camera_p)this;
 
-    this2->x += this2->v_x * cos(this2->theta_x) + this2->v_z * sin(-this2->theta_x);
-    this2->y += this2->v_y;
-    this2->z += this2->v_z * cos(this2->theta_x) - this2->v_x * sin(-this2->theta_x);
+    double current_time = (double)clock() / (double)CLOCKS_PER_SEC;
+    double time_between_frames = current_time - this2->old_time;
+    double target_time = 1.0 / 120.0;
+    this2->old_time = current_time;
+    double coef = 1.0;
+    if (time_between_frames > target_time)
+    {
+        coef = time_between_frames / target_time;
+    }
 
-    this2->theta_x += this2->w_x;
-    this2->theta_y += this2->w_y;
+    this2->x += this2->v_x * coef * cos(this2->theta_x) + this2->v_z * sin(-this2->theta_x);
+    this2->y += this2->v_y * coef;
+    this2->z += this2->v_z * coef * cos(this2->theta_x) - this2->v_x * sin(-this2->theta_x);
+
+    if (!this2->clicks || (this2->old_mouse_x == 0.0 && this2->old_mouse_y == 0.0) || (this2->mouse_x - this2->old_mouse_x <= 0.0001 && this2->mouse_x - this2->old_mouse_x >= -0.0001))
+        return;
+
+    this2->theta_x += 0.2 * PI * (this2->mouse_x - this2->old_mouse_x) * coef;
+    this2->theta_y += 0.2 * PI * (this2->mouse_y - this2->old_mouse_y) * coef;
 
     Clamp(&(this2->y), -0.0, 40.0);
     Clamp(&(this2->theta_y), 0.0, PI / 3.0);
-
-    if (!this2->clicks || (this2->old_mouse_x == 0.0 && this2->old_mouse_y == 0.0))
-        return;
-
-    this2->theta_x += 0.2 * PI * (this2->mouse_x - this2->old_mouse_x);
-    this2->theta_y += 0.2 * PI * (this2->mouse_y - this2->old_mouse_y);
 }
 
 void controller_camera_draw(controller_p this)
@@ -168,6 +177,7 @@ controller_camera_p Controller_camera(float x0, float y0, float z0)
     this->mouse_y = 0.0;
     this->old_mouse_x = 0.0;
     this->old_mouse_y = 0.0;
+    this->old_time = 0.0;
 
     return this;
 }

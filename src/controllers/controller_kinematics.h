@@ -18,6 +18,8 @@ typedef struct controller_kinematics
     float theta_x, theta_y, theta_z;
     // Vitesse angulaire (rd/s)
     float wx, wy, wz;
+
+    double old_time;
 } controller_kinematics_t, *controller_kinematics_p;
 
 // Constructeur

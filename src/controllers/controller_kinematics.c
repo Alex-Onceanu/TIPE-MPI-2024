@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 #include <GLES2/gl2.h>
 
 #include "controller_kinematics.h"
@@ -14,15 +15,26 @@ void controller_kinematics_update(controller_p this)
     // ruse de sioux
     controller_kinematics_p this2 = (controller_kinematics_p)this;
 
-    this2->x += this2->vx;
-    this2->y += this2->vy;
-    this2->z += this2->vz;
+    double current_time = (double)clock() / (double)CLOCKS_PER_SEC;
+    double time_between_frames = current_time - this2->old_time;
+    double target_time = 1.0 / 120.0;
+    this2->old_time = current_time;
+    double coef = 1.0;
+    if (time_between_frames > target_time)
+    {
+        coef = time_between_frames / target_time;
+    }
+    printf("Current time : %f, time_bf : %f, coef : %f\n", current_time, time_between_frames, coef);
+
+    this2->x += this2->vx * coef;
+    this2->y += this2->vy * coef;
+    this2->z += this2->vz * coef;
     if (this2->z <= -19. || this2->z > -9.)
         this2->vz *= -1.;
 
-    this2->theta_x += this2->wx;
-    this2->theta_y += this2->wy;
-    this2->theta_z += this2->wz;
+    this2->theta_x += this2->wx * coef;
+    this2->theta_y += this2->wy * coef;
+    this2->theta_z += this2->wz * coef;
 
     // printf("%f\n", this2->x);
     // printf("x, y, z : %f, %f, %f;; vz : %f, ty : %f, wy : %f\n", this2->x, this2->y, this2->z, this2->vz, this2->theta_y, this2->wy);
@@ -66,6 +78,8 @@ controller_kinematics_p Controller_kinematics(float x0, float y0, float z0, floa
     this->wx = 0.;
     this->wy = 0.;
     this->wz = 0.;
+
+    this->old_time = 0.0;
 
     return this;
 }
