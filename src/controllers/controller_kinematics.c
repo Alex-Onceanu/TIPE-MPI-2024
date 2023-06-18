@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <stdio.h>
 #include <time.h>
 #include <GLES2/gl2.h>
 
@@ -24,7 +23,6 @@ void controller_kinematics_update(controller_p this)
     {
         coef = time_between_frames / target_time;
     }
-    printf("Current time : %f, time_bf : %f, coef : %f\n", current_time, time_between_frames, coef);
 
     this2->x += this2->vx * coef;
     this2->y += this2->vy * coef;
