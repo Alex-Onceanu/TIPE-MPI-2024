@@ -5,13 +5,16 @@
 #include "world.h"
 
 #include "tools/vector.h"
+#include "tools/constantes.h"
 #include "entity.h"
 #include "controllers/controller.h"
 #include "controllers/controller_kinematics.h"
 #include "controllers/controller_solid.h"
 #include "controllers/controller_camera.h"
 #include "modelisation/model_3D.h"
+#include "modelisation/materiau.h"
 #include "user_event.h"
+
 
 struct world
 {
@@ -27,39 +30,35 @@ world_p world_init()
     this->entities = vector_init();
     this->events = vector_init();
 
-    // Instancier la camera
-    entity_p cam = Entity();
-    controller_camera_p ccam = Controller_camera(0.0, 1.0, 0.0);
-    entity_add_controller(cam, (controller_p)ccam);
-    vector_append(this->entities, (void *)cam);
-
-    // for (float z = -20.0; z <= 20.1; z += 20.0)
-    // {
-    //     for (float y = -20.0; y <= 20.1; y += 20.0)
-    //     {
-    //         for (float x = -20.0; x <= 20.1; x += 20.0)
-    //         {
-    //             if (x >= -10.0 && x <= 10.0 && y <= -10.0 && y >= 10.0 && z >= -10.0 && z <= 10.0)
-    //                 continue;
-    //             entity_p e = Entity();
-    //             controller_kinematics_p ck = Controller_kinematics(x, y, z, 0.0, 0.0, 0.0);
-
-    //             model_3D_p cube3d = Cube(2.0, x / 41.0, y / 41.0, z / 41.0);
-    //             controller_solid_p cs = Controller_solid(cube3d);
-
-    //             entity_add_controller(e, (controller_p)ck);
-    //             entity_add_controller(e, (controller_p)cs);
-    //             vector_append(this->entities, (void *)e);
-    //         }
-    //     }
-    // }
+    const char* SKYBOX[6] = { "../res/textures/sky/1.ppm","../res/textures/sky/2.ppm","../res/textures/sky/3.ppm","../res/textures/sky/4.ppm","../res/textures/sky/5.ppm","../res/textures/sky/6.ppm" };
+    {
+        // Instancier la camera
+        entity_p cam = Entity(NO_PROGRAM);
+        controller_camera_p ccam = Controller_camera(0.0, 1.0, 0.0);
+        entity_add_controller(cam, (controller_p)ccam);
+        vector_append(this->entities, (void *)cam);
+    }
 
     {
-        entity_p e = Entity();
+        // On represente la source de lumiere par un "soleil" cubique
+        entity_p e = Entity(COLOR_PROGRAM);
+        controller_kinematics_p ck = Controller_kinematics(SUN_X, SUN_Y, SUN_Z, 0.0, 0.0, 0.0);
+
+        model_3D_p cube3d = Sphere(0.8, 1.0, 1.0, 1.0);
+        controller_solid_p cs = Controller_solid(cube3d, SOLEIL);
+
+        entity_add_controller(e, (controller_p)ck);
+        entity_add_controller(e, (controller_p)cs);
+        vector_append(this->entities, (void *)e);
+    }
+
+    
+    {
+        entity_p e = Entity(COLOR_PROGRAM);
         controller_kinematics_p ck = Controller_kinematics(0.0, 0.0, -35.0, 0.0, 0.0, 0.0);
-
-        model_3D_p cube3d = Sphere(1.0);
-        controller_solid_p cs = Controller_solid(cube3d);
+        // ck->wy = -PI / 120.0;
+        model_3D_p cube3d = Sphere(1.0, 0.3, 0.3, 0.3);
+        controller_solid_p cs = Controller_solid(cube3d, FER);
 
         entity_add_controller(e, (controller_p)ck);
         entity_add_controller(e, (controller_p)cs);
@@ -67,13 +66,13 @@ world_p world_init()
     }
 
     {
-        entity_p e = Entity();
+        entity_p e = Entity(COLOR_PROGRAM);
         controller_kinematics_p ck = Controller_kinematics(-5.0, 0.5, -35.0, 0.0, 0.0, 0.0);
-        ck->wy = PI / 60.0;
-        ck->wz = PI / 120.0;
+        // ck->wy = PI / 60.0;
+        ck->wy = PI / 120.0;
 
-        model_3D_p cube3d = Cube(2.0, 0.3, 0.3, 0.6);
-        controller_solid_p cs = Controller_solid(cube3d);
+        model_3D_p cube3d = Cube(2.0, 0.3, 0.3, 0.6, NULL);
+        controller_solid_p cs = Controller_solid(cube3d, BRIQUE);
 
         entity_add_controller(e, (controller_p)ck);
         entity_add_controller(e, (controller_p)cs);
@@ -81,28 +80,44 @@ world_p world_init()
     }
 
     {
-        entity_p e = Entity();
-        controller_kinematics_p ck = Controller_kinematics(5.0, 0.0, -35.0, 0.0, 0.0, 0.0);
+        entity_p e = Entity(COLOR_PROGRAM);
+        controller_kinematics_p ck = Controller_kinematics(5.0, 1.5, -35.0, 0.0, 0.0, 0.0);
 
-        model_3D_p cube3d = Pave(2.0, 5.0, 2.0, 0.6, 0.6, 0.3);
-        controller_solid_p cs = Controller_solid(cube3d);
+        model_3D_p cube3d = Pave(2.0, 5.0, 2.0, 0.6, 0.6, 0.3, NULL);
+        controller_solid_p cs = Controller_solid(cube3d, FER);
 
         entity_add_controller(e, (controller_p)ck);
         entity_add_controller(e, (controller_p)cs);
         vector_append(this->entities, (void *)e);
     }
 
-    // Le sol est un pavé
-    entity_p sol = Entity();
-    controller_kinematics_p c1 = Controller_kinematics(0.0, -2.0, 0.0, 0., 0., 0.);
+    {
+        // Le sol est un pavé
+        entity_p sol = Entity(COLOR_PROGRAM);
+        controller_kinematics_p c1 = Controller_kinematics(0.0, -2.0, -20.0, 0., 0., 0.);
 
-    model_3D_p pav3d = Pave(100.0, 2.0, 100.0, 0.88, 0.803, 0.6627);
-    assert(pav3d != NULL);
-    controller_solid_p c2 = Controller_solid(pav3d);
+        model_3D_p pav3d = Pave(200.0, 2.0, 300.0, 0.44, 0.401, 0.3313, NULL);
+        assert(pav3d != NULL);
+        controller_solid_p c2 = Controller_solid(pav3d, SABLE);
 
-    entity_add_controller(sol, (controller_p)c1);
-    entity_add_controller(sol, (controller_p)c2);
-    vector_append(this->entities, (void *)sol);
+        entity_add_controller(sol, (controller_p)c1);
+        entity_add_controller(sol, (controller_p)c2);
+        vector_append(this->entities, (void *)sol);
+    }
+
+    {
+        // Le ciel est un cube
+        entity_p e = Entity(SKYBOX_PROGRAM);
+        controller_kinematics_p ck = Controller_kinematics(0., 1., 0., 0., 0., 0.);
+
+        model_3D_p cube3d = Cube(4.0, 1.0, 1.0, 1.0, SKYBOX);
+        assert(cube3d != NULL);
+        controller_solid_p cs = Controller_solid(cube3d, SOLEIL);
+
+        entity_add_controller(e, (controller_p)ck);
+        entity_add_controller(e, (controller_p)cs);
+        vector_append(this->entities, (void *)e);
+    }
 
     return this;
 }

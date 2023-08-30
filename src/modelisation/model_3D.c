@@ -8,10 +8,11 @@
 #include "model_3D.h"
 #include "vertex.h"
 #include "../tools/constantes.h"
+#include "materiau.h"
 
 #include <GLES2/gl2.h>
 
-model_3D_p Model_3D(unsigned int __nb_vertex, vertex_t *__vertex_buffer, unsigned int __nb_index, unsigned int *__index_buffer)
+model_3D_p Model_3D(unsigned int __nb_vertex, vertex_t *__vertex_buffer, unsigned int __nb_index, unsigned int *__index_buffer, const char* cube_images[6])
 {
     model_3D_p this = malloc(sizeof(model_3D_t));
 
@@ -20,17 +21,13 @@ model_3D_p Model_3D(unsigned int __nb_vertex, vertex_t *__vertex_buffer, unsigne
     this->nb_index = __nb_index;
     this->index_buffer = __index_buffer;
 
+    if(cube_images == NULL) this->cubemap_id = NO_TEXTURE;
+    else this->cubemap_id = init_cubemap(cube_images);
+
     return this;
 }
 
-// On associe à chaque position possible une couleur, pour des boules colorées
-float to_color(const float pos)
-{
-    return 0.4;
-    // return (pos + 1.0) / 2.0;
-}
-
-model_3D_p Sphere(double rayon)
+model_3D_p Sphere(double rayon, double __r, double __g, double __b)
 {
     // On génère une sphère comme l'ensemble des points à une distance r du point (0, 0, 0)
     // Donc on fait 2 boucles d'angles (avec des angles en degrés)
@@ -49,8 +46,8 @@ model_3D_p Sphere(double rayon)
     // D'abord on génère tous les sommets de la sphère sur lesquels reposeront les triangles
 
     // Pôles nord et sud de la sphère
-    vertex_buffer[0] = Vertex(0.0, -1.0 * rayon, 0.0, 0.5, 0.0, 0.5);
-    vertex_buffer[nb_vertex - 1] = Vertex(0.0, 1.0 * rayon, 0.0, 0.5, 1.0, 0.5);
+    vertex_buffer[0] = Vertex(0.0, -1.0 * rayon, 0.0, 0.5, 0.0, 0.5, 0.0, -1.0, 0.0);
+    vertex_buffer[nb_vertex - 1] = Vertex(0.0, 1.0 * rayon, 0.0, 0.5, 1.0, 0.5, 0.0, 1.0, 0.0);
 
     // Toutes les autres possibilités de points à une distance r du centre
     for (int theta = -180 + pas; theta < 180 - pas; theta += pas)
@@ -61,13 +58,15 @@ model_3D_p Sphere(double rayon)
             phi_rd = (phi * 2.0 * PI) / 360.0;
             // On a deux angles et un rayon : on déduit les coordonnées cartésiennes à partir des sphériques
 
+            // normale = normaliser(position) parce que c'est une sphere
             vertex_buffer[i] = Vertex(
                 rayon * sin(phi_rd) * cos(theta_rd),
                 rayon * sin(phi_rd) * sin(theta_rd),
                 rayon * cos(phi_rd),
-                to_color(sin(phi_rd) * cos(theta_rd)),
-                to_color(sin(phi_rd) * sin(phi_rd)),
-                to_color(cos(phi_rd)));
+                __r, __g, __b,
+                sin(phi_rd) * cos(theta_rd),
+                sin(phi_rd) * sin(theta_rd),
+                cos(phi_rd));
             i++;
         }
     }
@@ -145,10 +144,10 @@ model_3D_p Sphere(double rayon)
     printf("j = %d, nb_index = %d\n", j, nb_index);
     assert(j == nb_index);
 
-    return Model_3D(nb_vertex, vertex_buffer, nb_index, index_buffer);
+    return Model_3D(nb_vertex, vertex_buffer, nb_index, index_buffer, NULL);
 }
 
-model_3D_p Pave(double width, double height, double depth, double r, double g, double b)
+model_3D_p Pave(double width, double height, double depth, double r, double g, double b, const char* cube_images[6])
 {
     double w = width / 2.0;
     double h = height / 2.0;
@@ -156,54 +155,91 @@ model_3D_p Pave(double width, double height, double depth, double r, double g, d
 
     vertex_t vertex[] = {
         // x, y, z, r, g, b, normale.x, normale.y, normale.z
-        Vertex(-w, -h, d, r, g, b),
-        Vertex(w, -h, d, r, g, b),
-        Vertex(w, -h, -d, r, g, b),
-        Vertex(-w, -h, -d, r, g, b),
+        Vertex(w, -h, d, r, g, b, 0.0, -1.0, 0.0),
+        Vertex(w, -h, -d, r, g, b, 0.0, -1.0, 0.0),
+        Vertex(-w, -h, d, r, g, b, 0.0, -1.0, 0.0),
+        Vertex(w, -h, -d, r, g, b, 0.0, -1.0, 0.0),
+        Vertex(-w, -h, -d, r, g, b, 0.0, -1.0, 0.0),
+        Vertex(-w, -h, d, r, g, b, 0.0, -1.0, 0.0),
 
-        Vertex(-w, h, d, r, g, b),
-        Vertex(w, h, d, r, g, b),
-        Vertex(w, h, -d, r, g, b),
-        Vertex(-w, h, -d, r, g, b),
+        Vertex(-w, h, d, r, g, b, -1.0, 0.0, 0.0),
+        Vertex(-w, -h, d, r, g, b, -1.0, 0.0, 0.0),
+        Vertex(-w, -h, -d, r, g, b, -1.0, 0.0, 0.0),
+        Vertex(-w, h, d, r, g, b, -1.0, 0.0, 0.0),
+        Vertex(-w, -h, -d, r, g, b, -1.0, 0.0, 0.0),
+        Vertex(-w, h, -d, r, g, b, -1.0, 0.0, 0.0),
 
-        Vertex(-w, h, d, r, g, b),
-        Vertex(w, h, d, r, g, b),
-        Vertex(w, h, -d, r, g, b),
-        Vertex(-w, h, -d, r, g, b),
+        Vertex(-w, -h, d, r, g, b, 0.0, 0.0, 1.0),
+        Vertex(w, -h, d, r, g, b, 0.0, 0.0, 1.0),
+        Vertex(w, h, d, r, g, b, 0.0, 0.0, 1.0),
+        Vertex(-w, -h, d, r, g, b, 0.0, 0.0, 1.0),
+        Vertex(w, h, d, r, g, b, 0.0, 0.0, 1.0),
+        Vertex(-w, h, d, r, g, b, 0.0, 0.0, 1.0),
 
-        Vertex(-w, h, d, r, g, b),
-        Vertex(w, h, d, r, g, b),
-        Vertex(w, h, -d, r, g, b),
-        Vertex(-w, h, -d, r, g, b)};
+        Vertex(-w, -h, -d, r, g, b, 0.0, 0.0, -1.0),
+        Vertex(w, -h, -d, r, g, b, 0.0, 0.0, -1.0),
+        Vertex(w, h, -d, r, g, b, 0.0, 0.0, -1.0),
+        Vertex(-w, -h, -d, r, g, b, 0.0, 0.0, -1.0),
+        Vertex(w, h, -d, r, g, b, 0.0, 0.0, -1.0),
+        Vertex(-w, h, -d, r, g, b, 0.0, 0.0, -1.0),
+
+        Vertex(w, -h, d, r, g, b, 1.0, 0.0, 0.0),
+        Vertex(w, -h, -d, r, g, b, 1.0, 0.0, 0.0),
+        Vertex(w, h, d, r, g, b, 1.0, 0.0, 0.0),
+        Vertex(w, -h, -d, r, g, b, 1.0, 0.0, 0.0),
+        Vertex(w, h, -d, r, g, b, 1.0, 0.0, 0.0),
+        Vertex(w, h, d, r, g, b, 1.0, 0.0, 0.0),
+
+        Vertex(-w, h, d, r, g, b, 0.0, 1.0, 0.0),
+        Vertex(w, h, d, r, g, b, 0.0, 1.0, 0.0),
+        Vertex(w, h, -d, r, g, b, 0.0, 1.0, 0.0),
+        Vertex(-w, h, d, r, g, b, 0.0, 1.0, 0.0),
+        Vertex(w, h, -d, r, g, b, 0.0, 1.0, 0.0),
+        Vertex(-w, h, -d, r, g, b, 0.0, 1.0, 0.0)};
 
     int nb_vertex = sizeof(vertex) / sizeof(vertex_t);
 
     vertex_t *vertex2 = malloc(sizeof(vertex));
     memcpy(vertex2, vertex, sizeof(vertex));
 
-    unsigned int indices[] = {
-        1, 2, 0, 2, 3, 0,     // 1
-        12, 0, 3, 12, 3, 15,  // 2
-        0, 1, 5, 0, 5, 4,     // 3
-        3, 2, 6, 3, 6, 7,     // 4
-        1, 2, 13, 2, 14, 13,  // 5
-        8, 9, 10, 8, 10, 11}; // 6
-
-    int nb_indices = sizeof(indices) / sizeof(unsigned int);
-
-    unsigned int *indices2 = malloc(sizeof(indices));
-    memcpy(indices2, indices, sizeof(indices));
-
-    return Model_3D(nb_vertex, vertex2, nb_indices, indices2);
+    return Model_3D(nb_vertex, vertex2, 0, NULL, cube_images);
 }
 
-model_3D_p Cube(double c, double r, double g, double b)
+model_3D_p Cube(double c, double r, double g, double b, const char* cube_images[6])
 {
-    return Pave(c, c, c, r, g, b);
+    return Pave(c, c, c, r, g, b, cube_images);
 }
 
-void model_3D_draw(model_3D_p this)
+void model_3D_draw(model_3D_p this, materiau_t materiau, unsigned int program_index)
 {
+    // D'abord on set le program qui sera utilisé pour le rendu de cet objet
+    const unsigned int program = PROGRAM_ID[program_index];
+    glUseProgram(program);
+    // printf("prog : %d\n", program);
+
+    if(this->cubemap_id != NO_TEXTURE)
+    {
+        // On set la texture de this comme texture active
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, this->cubemap_id);
+        unsigned int u_Cubemap = glGetUniformLocation(program, "u_Cubemap");
+        glUniform1i(u_Cubemap, 0);
+
+        // Clean
+        // glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+    }
+
+
+    // On set la constante du materiau de l'objet pour le rendu
+    int u_ambient = glGetUniformLocation(program, "u_Material.ambient");
+    glUniform3f(u_ambient, materiau.ambient[0], materiau.ambient[1], materiau.ambient[2]);
+    int u_diffuse = glGetUniformLocation(program, "u_Material.diffuse");
+    glUniform3f(u_diffuse, materiau.diffuse[0], materiau.diffuse[1], materiau.diffuse[2]);
+    int u_specular = glGetUniformLocation(program, "u_Material.specular");
+    glUniform3f(u_specular, materiau.specular[0], materiau.specular[1], materiau.specular[2]);
+    int u_shininess = glGetUniformLocation(program, "u_Material.shininess");
+    glUniform1f(u_shininess, materiau.shininess);
+
     // Vertex buffer, on envoie à OpenGL les données du triangle
     unsigned int vertex_buf_id;
     glGenBuffers(1, &vertex_buf_id);
@@ -217,12 +253,21 @@ void model_3D_draw(model_3D_p this)
     // Couleur
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, NB_ATTRIBUTES_VERTEX * sizeof(float), (void *)(3 * sizeof(float)));
+    // Normales
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, NB_ATTRIBUTES_VERTEX * sizeof(float), (void*)(6 * sizeof(float)));
 
-    // Bind et interprétation du index_buffer
-    unsigned int index_buf_id;
-    glGenBuffers(1, &index_buf_id);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buf_id);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->nb_index * sizeof(unsigned int), this->index_buffer, GL_DYNAMIC_DRAW);
-
-    glDrawElements(GL_TRIANGLES, this->nb_index, GL_UNSIGNED_INT, NULL);
+    if(this->nb_index > 0)
+    {
+        // Bind et interprétation du index_buffer
+        unsigned int index_buf_id;
+        glGenBuffers(1, &index_buf_id);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buf_id);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->nb_index * sizeof(unsigned int), this->index_buffer, GL_DYNAMIC_DRAW);
+        glDrawElements(GL_TRIANGLES, this->nb_index, GL_UNSIGNED_INT, NULL);
+    }
+    else
+    {
+        glDrawArrays(GL_TRIANGLES, 0, this->nb_vertex);
+    }
 }

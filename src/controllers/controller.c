@@ -21,3 +21,13 @@ void controller_free(controller_p this)
 {
     free(this);
 }
+
+void controller_set_program_id(controller_p this, unsigned int __program_index)
+{
+    this->program_index = __program_index;
+}
+
+unsigned int controller_get_program_id(controller_p this)
+{
+    return this->program_index;
+}

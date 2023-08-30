@@ -7,6 +7,7 @@
 #include <emscripten/html5.h>
 
 #include "../tools/reader.h"
+#include "../tools/constantes.h"
 
 unsigned int compile_shader(unsigned int type, const char *source)
 {
@@ -60,49 +61,54 @@ char *read_shader(const char *filename)
     return res;
 }
 
-void init_texture(unsigned int program)
+// paths = 6 chemins de fichiers (.ppm par pitié)
+unsigned int init_cubemap(const char* paths[6])
 {
-    // Pas la peine, GL_REPEAT est bien et est par défaut
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+    // identifiant du cubemap, qu'on renverra à la fin
+    unsigned int texture_id;
+    // Génère un identifiant de texture (ici sera une texture de type cubemap)
+    glGenTextures(1, &texture_id);
+    // Associe un id de texture à GL_TEXTURE_CUBE_MAP (donc toute opération sur GL_TEXTURE_CUBE_MAP se fera sur cet id)
+    glBindTexture(GL_TEXTURE_CUBE_MAP, texture_id);
+    
+    // Paramètres de rendu du cubemap
+    // GL_LINEAR en MAG/MIN dit de prendre la somme des pixels environnants pour les sous-pixels (ce qui donne une image + floue au lieu de pixelisée)
+    // GL_TEXTURE_WRAP_S/T/R = pour chaque fin de coordonnée (donc passage d'une face à une autre)...
+    // ...on choisit le mode CLAMP_TO_EDGE donc si l'image est à peine trop petite on "étire ses bords" jusqu'à remplir ce qu'il manque
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
+    // Pour chaque face
     int width, height, nrChannels;
-    unsigned char *data = read_ppm("./res/textures/dice.ppm", &width, &height);
-
-    if (!data)
+    for(int i = 0; i < 6; i++)
     {
-        printf("ERR : l'image png n'a pu être chargée : data = %s\n", data);
-        // printf("%s\n", stbi_failure_reason());
+        // Chargement de l'image de la i-ième face
+        unsigned char *data = read_ppm(paths[i], &width, &height);
+
+        if (!data)
+        {
+            printf("ERR : l'image ppm n'a pu être chargée : data = %s\n", data);
+            return NO_TEXTURE;
+        }
+        else
+        {
+            printf("l'image a pu être chargée : yooopi !\n");
+            // On set des informations et l'image-même de la face GL_TEXTURE_CUBE_MAP_POSITIVE_X + i 
+            // (c'est un sous-enum de GL_TEXTURE_CUBE_MAP représentant la i-ième face)
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+            // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+        }
     }
-    else
-    {
-        printf("l'image a pu être chargée : yooopi !\n");
-    }
+    
+    // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-    // Chaque texture chargée est associée à un uint, qu'on stocke dans un
-    // unsigned int[], ici comme il y en a 1 seul on envoie &texture
-    unsigned int texture;
-    // Génération du texture object
-    glGenTextures(1, &texture);
-
-    glActiveTexture(GL_TEXTURE0); // Activer texture unit
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    // On attache une image 2d à un texture object
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-
-    // Voir définition d'un mipmap
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    glUniform1i(glGetUniformLocation(program, "u_Texture"), 0);
-
-    free(data);
+    return texture_id;
 }
 
-unsigned int init()
+void init()
 {
     srand(time(NULL));
 
@@ -115,17 +121,19 @@ unsigned int init()
     EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx = emscripten_webgl_create_context("#canvas", &attr);
     emscripten_webgl_make_context_current(ctx);
 
-    // Vertex Shader, pour la position de chaque vertex
-    char *vs_source = read_shader("../res/shaders/main.vert");
+    char* shader_paths[NB_PROGRAMS][2] = { {"../res/shaders/color.vert","../res/shaders/color.frag" },{ "../res/shaders/texture.vert","../res/shaders/texture.frag" },{ "../res/shaders/skybox.vert","../res/shaders/skybox.frag" } };
 
-    // Fragment Shader, pour chaque pixel (gère la couleur en outre)
-    char *fs_source = read_shader("../res/shaders/main.frag");
+    for(int program_it = 0; program_it < NB_PROGRAMS; program_it++)
+    {
+        // Vertex Shader, pour la position de chaque vertex
+        char *vs_source = read_shader(shader_paths[program_it][0]);
 
-    unsigned int shader = create_program(vs_source, fs_source);
-    glUseProgram(shader);
+        // Fragment Shader, pour chaque pixel (gère la couleur/texture, la lumière...)
+        char *fs_source = read_shader(shader_paths[program_it][1]);
+        
+        PROGRAM_ID[program_it] = create_program(vs_source, fs_source);
 
-    free(vs_source);
-    free(fs_source);
-
-    return shader;
+        free(vs_source);
+        free(fs_source);
+    }
 }

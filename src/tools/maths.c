@@ -185,22 +185,10 @@ mat4_t mat4_inverse(const mat4_t m)
     // g h i z
     // 0 0 0 1
     // Parce qu'on va développer suivant la dernière ligne
-    // mat4_affiche(m);
-    // printf("\n");
 
     float c1[9] = {m.coefs[0], m.coefs[1], m.coefs[2],
                    m.coefs[4], m.coefs[5], m.coefs[6],
                    m.coefs[8], m.coefs[9], m.coefs[10]};
-
-    // for (int y = 0; y < 3; ++y)
-    // {
-    //     for (int x = 0; x < 3; ++x)
-    //     {
-    //         printf(" %d : %2f", 3 * y + x, c1[3 * y + x]);
-    //     }
-    //     printf("\n");
-    // }
-    // printf("%f * %f * %f  = %f\n", c1[8], c1[3], c1[1], c1[8] * c1[3] * c1[1]);
 
     // d = det m
     float d = DET3(c1);
@@ -234,14 +222,6 @@ mat4_t mat4_inverse(const mat4_t m)
     }
 
     mat4_t res = mat4_scalaire(mat4_transpose(com), 1.0 / d);
-    // printf("Avant : \n");
-    // mat4_affiche(m);
-    // printf("Comatrice : \n");
-    // mat4_affiche(com);
-    // printf("Res : \n");
-    // mat4_affiche(res);
-    // printf("produit : \n");
-    // mat4_affiche(mat4_produit(res, m));
 
     return res;
 }
@@ -335,7 +315,7 @@ mat4_t projection()
     float fov = 3.14159 / 6.0;
     float n = 1.0 / tan(fov / 2.0);
     float aspect = 1.0;
-    float f = 40.0;
+    float f = 120.0;
 
     mat4_t res = mat4_id_t();
 

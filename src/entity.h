@@ -10,6 +10,9 @@ typedef struct entity
     // Exemples : un controlleur pour la cinematique, un pour les collisions...
     // Le vecteur en question stocke des controller_p sous forme de void*
     vector_p controllers;
+    
+    // COLOR_PROGRAM | TEXTURE_PROGRAM | NO_PROGRAM
+    unsigned int program_index; 
 
     // Methodes, en tant que pointeurs vers des fonctions
 
@@ -19,12 +22,12 @@ typedef struct entity
 } entity_t, *entity_p;
 
 // Constructeur
-entity_p Entity();
+entity_p Entity(unsigned int __program_index);
 
 // Destructeur
 void entity_free(entity_p this);
 
-// Litteralement vector_append(this->controllers, (void*)c)
+// Ajoute c aux controlleurs de this et set this->program_id à c 
 void entity_add_controller(entity_p this, controller_p c);
 
 #endif

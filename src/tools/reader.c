@@ -54,7 +54,7 @@ unsigned char *read_ppm(const char *filename_ppm, int *width, int *height)
     int nb_px = (*width) * (*height); // rgb
     unsigned char *res = malloc(3 * nb_px * sizeof(unsigned char));
     fread(res, sizeof(unsigned char), 3 * nb_px, fichier);
-    vertical_flip(res, 3 * *width, *height); // Renverse l'image, sinon elle est lue la tête en bas...
+    // vertical_flip(res, 3 * *width, *height); // Renverse l'image, sinon elle est lue la tête en bas...
 
     fclose(fichier);
     return res;

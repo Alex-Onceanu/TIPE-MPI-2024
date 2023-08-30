@@ -3,6 +3,7 @@
 
 #include "entity.h"
 #include "tools/vector.h"
+#include "tools/constantes.h"
 #include "controllers/controller.h"
 
 // Les 3 fonctions des entity de base
@@ -38,7 +39,7 @@ void entity_draw(entity_p this)
     }
 }
 
-entity_p Entity()
+entity_p Entity(unsigned int __program_index)
 {
     entity_p this = malloc(sizeof(entity_t));
 
@@ -46,6 +47,7 @@ entity_p Entity()
     this->process_input = entity_process_input;
     this->update = entity_update;
     this->draw = entity_draw;
+    this->program_index = __program_index;
 
     return this;
 }
@@ -63,5 +65,6 @@ void entity_free(entity_p this)
 
 void entity_add_controller(entity_p this, controller_p c)
 {
+    controller_set_program_id(c, this->program_index);
     vector_append(this->controllers, (void *)c);
 }

@@ -8,10 +8,10 @@ unsigned int compile_shader(unsigned int type, const char *source);
 // Compile deux shaders envoyés en param et renvoie un programme OpenGL
 int create_program(const char *vertex_shader, const char *fragment_shader);
 
-// S'occupe de l'initialisation des textures
-void init_texture(unsigned int program);
+// Charge un cubemap, renvoie son identifiant OpenGL
+unsigned int init_cubemap(const char* paths[6]);
 
-// Initialise le contexte Emscripten, lit les shaders et renvoie le programme
-unsigned int init();
+// Initialise le contexte Emscripten, lit les shaders et innitialise les programmes
+void init();
 
 #endif

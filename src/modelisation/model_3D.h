@@ -2,6 +2,7 @@
 #define MODEL_3D_H
 
 #include "vertex.h"
+#include "materiau.h"
 
 typedef struct model_3D
 {
@@ -10,22 +11,24 @@ typedef struct model_3D
 
     unsigned int nb_index;
     unsigned int *index_buffer;
+
+    unsigned int cubemap_id;
 } model_3D_t, *model_3D_p;
 
 // Vertex buffer et Index buffer doivent etre alloués aupréalablement sur le tas
-model_3D_p Model_3D(unsigned int __nb_vertex, vertex_t *__vertex_buffer, unsigned int __nb_index, unsigned int *__index_buffer);
+model_3D_p Model_3D(unsigned int __nb_vertex, vertex_t *__vertex_buffer, unsigned int __nb_index, unsigned int *__index_buffer, const char* cube_images[6]);
 
 // Génère et renvoie un pointeur vers le modèle 3d d'une sphère
-model_3D_p Sphere(double rayon);
+model_3D_p Sphere(double rayon, double __r, double __g, double __b);
 
 // Génère et renvoie un pointeur vers le modèle 3d d'un parallelipipede rectangle de taille width x height x depth
-model_3D_p Pave(double width, double height, double depth, double r, double g, double b);
+model_3D_p Pave(double width, double height, double depth, double r, double g, double b, const char* cube_images[6]);
 
 // Génère et renvoie un pointeur vers le modèle 3d d'un cube de taille c x c x c
-model_3D_p Cube(double c, double r, double g, double b);
+model_3D_p Cube(double c, double r, double g, double b, const char* cube_images[6]);
 
-// Lance les glDrawElements, glbindbuffer et tout ce qu'il faut
+// Lance les glDrawElements/glDrawArrays, glbindbuffer et tout ce qu'il faut
 // Techniquement dessine au centre 0, 0, 0, donc il FAUT faire une translation depuis O vers x, y, z)
-void model_3D_draw(model_3D_p this);
+void model_3D_draw(model_3D_p this, materiau_t materiau, unsigned int program_id);
 
 #endif

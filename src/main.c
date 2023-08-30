@@ -11,8 +11,8 @@
 #include "world.h"
 #include "user_event.h"
 
-// Cette "constante" globale stockera l'ID OPENGL representant le programme
-unsigned int PROGRAM_ID = 0;
+// Cette "constante" globale stockera les ID OPENGL representant les deux "programmes" (= vertex shader + fragment shader)
+unsigned int PROGRAM_ID[NB_PROGRAMS] = { 0,0 };
 
 // Affiche les erreurs de shader et OpenGL
 void debug()
@@ -23,7 +23,6 @@ void debug()
 
     while (error != GL_NO_ERROR)
     {
-        printf("!!\n");
         printf("%d\n", error);
         error = glGetError();
     }
@@ -53,41 +52,49 @@ EM_BOOL mainloop(double time, void *userData)
     world_update(world);
 
     // Clear
-    glClearColor(0.278, 0.592, 0.792, 1.0);
-    // glClearColor(0.1137, 0.16, 0.31765, 1.0);
+    // glClearColor(0.278, 0.592, 0.792, 1.0);
+    glClearColor(0.0, 0.0, 0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Draw
     world_draw(world);
 
+    // debug();
     return EM_TRUE;
 }
 
 int main()
 {
     // init s'occupe de toutes les initialisations uniques nécessaires
-    PROGRAM_ID = init();
+    init();
     // init_texture s'occupe des initialisations liees aux textures...
     // init_texture(PROGRAM_ID);
 
     glEnable(GL_DEPTH_TEST);
+    // Éviter le Z-fighting
+    glDepthFunc(GL_LEQUAL);
+    
+    printf("a\n");
+    for(int i = 0; i < NB_PROGRAMS; i++)
+    {
+        glUseProgram(PROGRAM_ID[i]);
 
-    // Vecteur de lumière, qui détermine le sens d'éclairage de la scène
-    float theta_incident = -PI / 2.0;
-    float phi_incident = 2 * PI / 3.0;
-    int u_Light = glGetUniformLocation(PROGRAM_ID, "u_Light");
-    glUniform4f(u_Light, sin(phi_incident) * cos(theta_incident), sin(phi_incident) * sin(theta_incident), cos(phi_incident), 1.0);
+        // Lumière : c'est une position (constante ici). La direction est déterminée dans le fragment shader.
+        int u_Light = glGetUniformLocation(PROGRAM_ID[i], "u_Light");
+        glUniform3f(u_Light, SUN_X, SUN_Y, SUN_Z);
 
-    // Matrice projection, reste constante donc autant la faire maintenant
-    mat4_t proj = projection();
-    int u_Proj = glGetUniformLocation(PROGRAM_ID, "u_Proj");
-    glUniformMatrix4fv(u_Proj, 1, GL_FALSE, proj.coefs);
-
-    debug();
+        // Matrice projection, reste constante donc autant la faire maintenant
+        mat4_t proj = projection();
+        int u_Proj = glGetUniformLocation(PROGRAM_ID[i], "u_Proj");
+        glUniformMatrix4fv(u_Proj, 1, GL_FALSE, proj.coefs);
+    }
+    printf("b\n");
 
     // Instanciation de world (instance principale)
     // Sera parametre de mainloop sous forme de void*
     world = world_init();
+    
+    debug();
 
     // Le mainloop est ici
     emscripten_request_animation_frame_loop(mainloop, NULL);
@@ -101,7 +108,6 @@ int main()
 // ___________________________________________________________________________________
 // Fonctions exportées, javascript y a accès pour gérer les événements utilisateur
 
-// Pas besoin de la souris pour l'instant
 void mouse_move(float x, float y)
 {
     f_tuple_t *tup = malloc(sizeof(f_tuple_t));

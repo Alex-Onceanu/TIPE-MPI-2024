@@ -123,6 +123,12 @@ void controller_camera_update(controller_p this)
     this2->y += this2->v_y * coef;
     this2->z += this2->v_z * coef * cos(this2->theta_x) - this2->v_x * sin(-this2->theta_x);
 
+    for(int i = 0; i < NB_PROGRAMS; i++)
+    {
+        int u_CameraPos = glGetUniformLocation(PROGRAM_ID[i], "u_CameraPos");
+        glUniform3f(u_CameraPos, this2->x, this2->y, this2->z);
+    }
+
     Clamp(&(this2->y), -0.0, 40.0);
 
     if (!this2->clicks || (this2->old_mouse_x == 0.0 && this2->old_mouse_y == 0.0) || (this2->mouse_x - this2->old_mouse_x <= 0.0001 && this2->mouse_x - this2->old_mouse_x >= -0.0001))
@@ -131,23 +137,27 @@ void controller_camera_update(controller_p this)
     this2->theta_x += 0.2 * PI * (this2->mouse_x - this2->old_mouse_x) * coef;
     this2->theta_y += 0.2 * PI * (this2->mouse_y - this2->old_mouse_y) * coef;
 
-    Clamp(&(this2->theta_y), 0.0, PI / 3.0);
+    Clamp(&(this2->theta_y), -PI / 2.0, PI / 2.0);
 }
 
 void controller_camera_draw(controller_p this)
 {
     controller_camera_p this2 = (controller_camera_p)this;
     // inv_view est la matrice de transform de la caméra, pour avoir la vraie matrice view,
-    // On utilisera son inverse (car on veut qu'en la multipliant par la transform de caméra, on obtienne l'identité...)
+    // On utilisera son inverse (car on veut qu'en la multipliant par la transform de caméra, on obtienne l'identité)
     mat4_t inv_view = translation(this2->x, this2->y, this2->z);
     mat4_t rotations = mat4_produit(rotation_y_4(-this2->theta_x), rotation_x_4(this2->theta_y));
     mat4_ajoute_inplace(&inv_view, mat4_ajoute(rotations, mat4_scalaire(mat4_id_t(), -1.0)));
 
     mat4_t view = mat4_inverse(inv_view);
 
-    // Matrice view : déplacements et rotations de la caméra dans le sens inverse
-    int u_View = glGetUniformLocation(PROGRAM_ID, "u_View");
-    glUniformMatrix4fv(u_View, 1, GL_FALSE, view.coefs);
+    for(int i = 0; i < NB_PROGRAMS; i++)
+    {
+        glUseProgram(PROGRAM_ID[i]);
+        // Matrice view : déplacements et rotations de la caméra dans le sens inverse
+        int u_View = glGetUniformLocation(PROGRAM_ID[i], "u_View");
+        glUniformMatrix4fv(u_View, 1, GL_FALSE, view.coefs);
+    }
 
     this2->old_mouse_x = this2->mouse_x;
     this2->old_mouse_y = this2->mouse_y;
