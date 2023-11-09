@@ -9,6 +9,23 @@ int randint(int a, int b);
 // Fait en sorte que x reste dans [| min_x, max_x |]
 void Clamp(float *x, float min_x, float max_x);
 
+// _______________________________Vecteur force________________________________
+
+// Vecteur 3D au sens physique de terme. On l'appelle force3 pour "vecteur force en 3D"
+typedef struct
+{
+    // composantes selon ux, uy, uz
+    float fx;
+    float fy;
+    float fz;
+} force3_t, *force3_p;
+
+// Constructeur (mais sur la pile)
+force3_t Force3(float __fx, float __fy, float __fz);
+
+// Fait en sorte que le vecteur de coordonnées (fx, fy, fz) ait pour norme 1 (inplace)
+void normalize(float* fx, float* fy, float* fz);
+
 // _______________________________Matrice________________________________
 
 // Matrice 4x4
@@ -57,7 +74,7 @@ mat4_t mat4_produit(const mat4_t m1, const mat4_t m2);
 // transposition
 mat4_t mat4_transpose(const mat4_t m);
 
-// Inversion
+// Inversion (algorithme utilisé : comatrice)
 mat4_t mat4_inverse(const mat4_t m);
 
 // ______________________________Applications___________________________________

@@ -18,6 +18,7 @@ typedef enum EVENT_TYPE
     DOWN_ARROW_UP,
     SPACE_UP,
     SHIFT_UP,
+    E_UP,
 
     W_DOWN,
     A_DOWN,
@@ -28,7 +29,8 @@ typedef enum EVENT_TYPE
     UP_ARROW_DOWN,
     DOWN_ARROW_DOWN,
     SPACE_DOWN,
-    SHIFT_DOWN
+    SHIFT_DOWN,
+    E_DOWN
 } EVENT_TYPE_t;
 
 typedef struct user_event

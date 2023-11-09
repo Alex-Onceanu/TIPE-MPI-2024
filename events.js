@@ -52,6 +52,9 @@ document.addEventListener('keydown', (event) => {
         case 'KeyD':
             Module.ccall('d_down');
             break;
+        case 'KeyE':
+            Module.ccall('e_down');
+            break;
         // case 'ArrowRight':
         //     Module.ccall('ar_down');
         //     break;
@@ -92,6 +95,9 @@ document.addEventListener('keyup', (event) => {
             break;
         case 'KeyD':
             Module.ccall('d_up');
+            break;
+        case 'KeyE':
+            Module.ccall('e_up');
             break;
         // case 'ArrowRight':
         //     Module.ccall('ar_up');

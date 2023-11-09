@@ -5,6 +5,7 @@
 #include "controller_kinematics.h"
 #include "../tools/constantes.h"
 #include "../tools/maths.h"
+#include "physics_manager.h"
 
 // Ne fait rien.
 void id2(controller_p c, void *data) { return; }
@@ -16,23 +17,42 @@ void controller_kinematics_update(controller_p this)
 
     double current_time = (double)clock() / (double)CLOCKS_PER_SEC;
     double time_between_frames = current_time - this2->old_time;
-    double target_time = 1.0 / 120.0;
+    double target_time = 1.0 / FPS;
     this2->old_time = current_time;
-    double coef = 1.0;
+    double dt = 1.0;
     if (time_between_frames > target_time)
     {
-        coef = time_between_frames / target_time;
+        dt = time_between_frames / target_time;
     }
 
-    this2->x += this2->vx * coef;
-    this2->y += this2->vy * coef;
-    this2->z += this2->vz * coef;
-    if (this2->z <= -19. || this2->z > -9.)
-        this2->vz *= -1.;
+    // Somme vectorielle des forces extérieures s'appliquant à l'objet
+    force3_t resultante = { 0.0, 0.0, 0.0 };
+    for(int i = 0; i < this2->nb_forces; i++)
+    {
+        resultante.fx += this2->forces[i].fx;
+        resultante.fy += this2->forces[i].fy;
+        resultante.fz += this2->forces[i].fz;
 
-    this2->theta_x += this2->wx * coef;
-    this2->theta_y += this2->wy * coef;
-    this2->theta_z += this2->wz * coef;
+        // Puis on enleve cette force de la liste des forces que subit l'objet
+        this2->forces[i] = Force3(0.0, 0.0, 0.0);
+    }
+    this2->nb_forces = 0;
+
+    // PFD : on obtient une accélération à partir de la résultante des forces que subit l'objet
+    // m * a = somme des forces et a = dv/dt donc dv = somme des forces * dt / m
+    this2->vx += resultante.fx * dt / this2->mass;
+    this2->vy += resultante.fy * dt / this2->mass;
+    this2->vz += resultante.fz * dt / this2->mass;
+
+    this2->x += this2->vx * dt;
+    this2->y += this2->vy * dt;
+    this2->z += this2->vz * dt;
+
+    // Appliquer un TMC pour obtenir l'accélération angulaire ?
+
+    this2->theta_x += this2->wx * dt;
+    this2->theta_y += this2->wy * dt;
+    this2->theta_z += this2->wz * dt;
 }
 
 void controller_kinematics_draw(controller_p this)
@@ -55,20 +75,22 @@ void controller_kinematics_draw(controller_p this)
     glUniformMatrix4fv(u_Rotation, 1, GL_FALSE, mat4_get(&rotation));
 }
 
-controller_kinematics_p Controller_kinematics(float x0, float y0, float z0, float theta_x0, float theta_y0, float theta_z0)
+controller_kinematics_p Controller_kinematics(float m, float x0, float y0, float z0, float theta_x0, float theta_y0, float theta_z0, physics_manager_p manager)
 {
     controller_kinematics_p this = malloc(sizeof(controller_kinematics_t));
     this->super.process_input = id2;
     this->super.update = controller_kinematics_update;
     this->super.draw = controller_kinematics_draw;
 
+    this->mass = m;
+
     this->x = x0;
     this->y = y0;
     this->z = z0;
 
-    this->vx = 0.;
-    this->vy = 0.;
-    this->vz = 0.;
+    this->vx = 0.0;
+    this->vy = 0.0;
+    this->vz = 0.0;
 
     this->theta_x = theta_x0;
     this->theta_y = theta_y0;
@@ -79,11 +101,22 @@ controller_kinematics_p Controller_kinematics(float x0, float y0, float z0, floa
     this->wz = 0.;
 
     this->old_time = 0.0;
+    this->nb_forces = 0;
+
+    if(manager != NULL)
+    {
+        physics_manager_add_controller_kinematics(manager, this);
+    }
 
     return this;
 }
 
-// void controller_kinematics_free(controller_kinematics_p this)
-// {
-//     free(this);
-// }
+void controller_kinematics_free(controller_kinematics_p this)
+{
+    free(this);
+}
+
+void controller_kinematics_add_force(controller_kinematics_p this, force3_t f)
+{
+    this->forces[this->nb_forces++] = f;
+}

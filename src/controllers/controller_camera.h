@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include "controller.h"
+#include "../tools/maths.h"
 
 typedef struct controller_camera
 {
@@ -19,6 +20,7 @@ typedef struct controller_camera
     float mouse_x, mouse_y;
     float old_mouse_x, old_mouse_y;
     double old_time;
+    float direction_x, direction_y, direction_z;
 } controller_camera_t, *controller_camera_p;
 
 // Constructeur

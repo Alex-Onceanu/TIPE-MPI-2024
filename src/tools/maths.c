@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #include "maths.h"
 
@@ -18,6 +19,26 @@ void Clamp(float *x, float min_x, float max_x)
     {
         *x = min_x;
     }
+}
+
+force3_t Force3(float __fx, float __fy, float __fz)
+{
+    force3_t res;
+    
+    res.fx = __fx;
+    res.fy = __fy;
+    res.fz = __fz;
+
+    return res;
+}
+
+void normalize(float* fx, float* fy, float* fz)
+{
+    float norme2 = sqrtf(*fx * *fx + *fy * *fy + *fz * *fz);
+    
+    *fx /= norme2;
+    *fy /= norme2;
+    *fz /= norme2;
 }
 
 mat4_p mat4_id_p()

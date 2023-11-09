@@ -206,6 +206,16 @@ void d_down()
     world_add_event(world, UserEvent(D_DOWN, NULL));
 }
 
+void e_up()
+{
+    world_add_event(world, UserEvent(E_UP, NULL));
+}
+
+void e_down()
+{
+    world_add_event(world, UserEvent(E_DOWN, NULL));
+}
+
 void space_up()
 {
     world_add_event(world, UserEvent(SPACE_UP, NULL));

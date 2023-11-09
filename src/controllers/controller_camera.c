@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <time.h>
 
 #include "controller_camera.h"
@@ -15,6 +16,7 @@ void controller_camera_process_input(controller_p this, void *data)
     user_event_p actuel;
     f_tuple_t *tup;
 
+    // !!!! CHANGER ÇA : il faut pas pop tous les event sinon les autres entités reçoivent le vecteur NULL
     while (vector_len(events_vector) > 0)
     {
         actuel = (user_event_p)vector_pop(events_vector);
@@ -111,17 +113,23 @@ void controller_camera_update(controller_p this)
 
     double current_time = (double)clock() / (double)CLOCKS_PER_SEC;
     double time_between_frames = current_time - this2->old_time;
-    double target_time = 1.0 / 120.0;
+    double target_time = 1.0 / FPS;
     this2->old_time = current_time;
-    double coef = 1.0;
+    double dt = 1.0;
     if (time_between_frames > target_time)
     {
-        coef = time_between_frames / target_time;
+        dt = time_between_frames / target_time;
     }
 
-    this2->x += this2->v_x * coef * cos(this2->theta_x) + this2->v_z * sin(-this2->theta_x);
-    this2->y += this2->v_y * coef;
-    this2->z += this2->v_z * coef * cos(this2->theta_x) - this2->v_x * sin(-this2->theta_x);
+    this2->direction_x = this2->v_x * cos(this2->theta_x) + this2->v_z * sin(-this2->theta_x);
+    this2->direction_y = this2->v_y;
+    this2->direction_z = this2->v_z * cos(this2->theta_x) - this2->v_x * sin(-this2->theta_x);
+
+    this2->x += this2->direction_x * dt;
+    this2->y += this2->direction_y * dt;
+    this2->z += this2->direction_z * dt;
+
+    normalize(&(this2->direction_x), &(this2->direction_y), &(this2->direction_z));
 
     for(int i = 0; i < NB_PROGRAMS; i++)
     {
@@ -134,8 +142,8 @@ void controller_camera_update(controller_p this)
     if (!this2->clicks || (this2->old_mouse_x == 0.0 && this2->old_mouse_y == 0.0) || (this2->mouse_x - this2->old_mouse_x <= 0.0001 && this2->mouse_x - this2->old_mouse_x >= -0.0001))
         return;
 
-    this2->theta_x += 0.2 * PI * (this2->mouse_x - this2->old_mouse_x) * coef;
-    this2->theta_y += 0.2 * PI * (this2->mouse_y - this2->old_mouse_y) * coef;
+    this2->theta_x += 0.2 * PI * (this2->mouse_x - this2->old_mouse_x) * dt;
+    this2->theta_y += 0.2 * PI * (this2->mouse_y - this2->old_mouse_y) * dt;
 
     Clamp(&(this2->theta_y), -PI / 2.0, PI / 2.0);
 }
@@ -163,6 +171,7 @@ void controller_camera_draw(controller_p this)
     this2->old_mouse_y = this2->mouse_y;
 }
 
+// Fait pointer direction_ptr vers l'attribut "direction" de cette instance
 controller_camera_p Controller_camera(float x0, float y0, float z0)
 {
     controller_camera_p this = malloc(sizeof(controller_camera_t));
@@ -188,6 +197,10 @@ controller_camera_p Controller_camera(float x0, float y0, float z0)
     this->old_mouse_x = 0.0;
     this->old_mouse_y = 0.0;
     this->old_time = 0.0;
+
+    this->direction_x = 0.0;
+    this->direction_y = 0.0;
+    this->direction_z = 0.0;
 
     return this;
 }

@@ -5524,6 +5524,8 @@ var _s_up = Module['_s_up'] = createExportWrapper('s_up');
 var _s_down = Module['_s_down'] = createExportWrapper('s_down');
 var _d_up = Module['_d_up'] = createExportWrapper('d_up');
 var _d_down = Module['_d_down'] = createExportWrapper('d_down');
+var _e_up = Module['_e_up'] = createExportWrapper('e_up');
+var _e_down = Module['_e_down'] = createExportWrapper('e_down');
 var _space_up = Module['_space_up'] = createExportWrapper('space_up');
 var _space_down = Module['_space_down'] = createExportWrapper('space_down');
 var _shift_up = Module['_shift_up'] = createExportWrapper('shift_up');
