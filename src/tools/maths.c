@@ -4,6 +4,11 @@
 
 #include "maths.h"
 
+float f_abs(float x)
+{
+    return x < 0.0 ? -x : x;
+}
+
 int randint(int a, int b)
 {
     return (rand() % (1 + b - a)) + a;
@@ -24,7 +29,7 @@ void Clamp(float *x, float min_x, float max_x)
 force3_t Force3(float __fx, float __fy, float __fz)
 {
     force3_t res;
-    
+
     res.fx = __fx;
     res.fy = __fy;
     res.fz = __fz;
@@ -32,10 +37,10 @@ force3_t Force3(float __fx, float __fy, float __fz)
     return res;
 }
 
-void normalize(float* fx, float* fy, float* fz)
+void normalize(float *fx, float *fy, float *fz)
 {
     float norme2 = sqrtf(*fx * *fx + *fy * *fy + *fz * *fz);
-    
+
     *fx /= norme2;
     *fy /= norme2;
     *fz /= norme2;
@@ -336,7 +341,7 @@ mat4_t projection()
     float fov = 3.14159 / 6.0;
     float n = 1.0 / tan(fov / 2.0);
     float aspect = 1.0;
-    float f = 120.0;
+    float f = 400.0;
 
     mat4_t res = mat4_id_t();
 

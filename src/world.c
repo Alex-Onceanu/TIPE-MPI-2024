@@ -17,7 +17,6 @@
 #include "user_event.h"
 #include "controllers/physics_manager.h"
 
-
 struct world
 {
     vector_p entities;
@@ -36,8 +35,8 @@ world_p world_init()
     this->events = vector_init();
     this->manager = Physics_manager();
 
-    const char* SKYBOX[6] = { "../res/textures/sky/1.ppm","../res/textures/sky/2.ppm","../res/textures/sky/3.ppm","../res/textures/sky/4.ppm","../res/textures/sky/5.ppm","../res/textures/sky/6.ppm" };
-    
+    const char *SKYBOX[6] = {"../res/textures/sky/1.ppm", "../res/textures/sky/2.ppm", "../res/textures/sky/3.ppm", "../res/textures/sky/4.ppm", "../res/textures/sky/5.ppm", "../res/textures/sky/6.ppm"};
+
     this->camera = Controller_camera(0.0, 1.0, 0.0);
     {
         // Instancier la camera
@@ -60,11 +59,11 @@ world_p world_init()
     }
     lance_boule(this);
     {
-        // Le sol est un pavé 
+        // Le sol est un pavé
         entity_p sol = Entity(COLOR_PROGRAM);
-        controller_kinematics_p c1 = Controller_kinematics(1000000.0, 0.0, -2.0, -20.0, 0.0, 0.0, 0.0, NULL);
+        controller_kinematics_p c1 = Controller_kinematics(1000000.0, 0.0, -2.0, 0.0, 0.0, 0.0, 0.0, NULL);
 
-        model_3D_p pav3d = Pave(200.0, 2.0, 300.0, 0.44, 0.401, 0.3313, NULL);
+        model_3D_p pav3d = Pave(600.0, 2.0, 600.0, 0.44, 0.401, 0.3313, NULL);
         assert(pav3d != NULL);
         controller_solid_p c2 = Controller_solid(pav3d, SABLE);
 
@@ -112,26 +111,27 @@ void lance_boule(world_p this)
     entity_p e = Entity(COLOR_PROGRAM);
     // masse réelle d'une boule de petanque : 0,730 kg
     const float mass = 1.0;
-    const float v0 = 0.3;
-    controller_kinematics_p ck = Controller_kinematics(mass, 
-                                    this->camera->x + this->camera->direction_x * 2.0, 
-                                    this->camera->y + this->camera->direction_y * 2.0, 
-                                    this->camera->z + this->camera->direction_z * 2.0, 
-                                    0.0, 0.0, 0.0, this->manager);
+    const float v0 = 2.0;
 
-    controller_kinematics_add_force(ck, Force3 (this->camera->direction_x * v0 * mass,
-                                                this->camera->direction_y * v0 * mass,
-                                                this->camera->direction_z * v0 * mass ));
-    ck->x = 0.0;
-    ck->y = 6.0;
-    ck->z = -35.0;
-    ck->vx = 0.15;
-    ck->vy = 0.5;
-    ck->vz = 0.2;
-    // ck->vx = this->camera->direction_x * v0;
-    // ck->vy = this->camera->direction_y * v0;
-    // ck->vz = this->camera->direction_z * v0;
-    printf("nb : %d\n", vector_len(this->entities));
+    controller_kinematics_p ck = Controller_kinematics(mass,
+                                                       this->camera->x + this->camera->direction_x * 10.0,
+                                                       this->camera->y + this->camera->direction_y * 10.0,
+                                                       this->camera->z + this->camera->direction_z * 10.0,
+                                                       0.0, 0.0, 0.0, this->manager);
+
+    controller_kinematics_add_force(ck, Force3(this->camera->direction_x * v0 * mass,
+                                               this->camera->direction_y * v0 * mass,
+                                               this->camera->direction_z * v0 * mass));
+
+    // controller_kinematics_p ck = Controller_kinematics(mass,
+    //                                 0.0,
+    //                                 6.0,
+    //                                 -35.0,
+    //                                 0.0, 0.0, 0.0, this->manager);
+
+    // controller_kinematics_add_force(ck, Force3 (0.15,
+    //                                             0.5,
+    //                                             0.2 ));
 
     model_3D_p model = Sphere(1.0, 0.3, 0.3, 0.3);
     controller_solid_p cs = Controller_solid(model, FER);
@@ -145,22 +145,22 @@ void world_process_input(world_p this)
 {
     // En cas d'appui de la touche E on génère une boule et on la lance dans la bonne direction
     user_event_p actuel;
-    
+
     // moche... revoir la façon de gérer les event
-    // int n_events = vector_len(this->events);
-    // for(int i = 0; i < n_events; i++)
-    // {
-    //     actuel = (user_event_p)vector_get_at(this->events, i);
-    //     switch(actuel->type)
-    //     {
-    //     case E_UP:
-    //         lance_boule(this);
-    //         i = n_events;
-    //         break;
-    //     default:
-    //         break;
-    //     }
-    // }
+    int n_events = vector_len(this->events);
+    for (int i = 0; i < n_events; i++)
+    {
+        actuel = (user_event_p)vector_get_at(this->events, i);
+        switch (actuel->type)
+        {
+        case E_UP:
+            lance_boule(this);
+            i = n_events;
+            break;
+        default:
+            break;
+        }
+    }
 
     int n_entities = vector_len(this->entities);
     for (int i = 0; i < n_entities; ++i)

@@ -121,17 +121,19 @@ void controller_camera_update(controller_p this)
         dt = time_between_frames / target_time;
     }
 
-    this2->direction_x = this2->v_x * cos(this2->theta_x) + this2->v_z * sin(-this2->theta_x);
-    this2->direction_y = this2->v_y;
-    this2->direction_z = this2->v_z * cos(this2->theta_x) - this2->v_x * sin(-this2->theta_x);
+    float dvx = this2->v_x * cos(this2->theta_x) + this2->v_z * sin(-this2->theta_x);
+    float dvy = this2->v_y;
+    float dvz = this2->v_z * cos(this2->theta_x) - this2->v_x * sin(-this2->theta_x);
 
-    this2->x += this2->direction_x * dt;
-    this2->y += this2->direction_y * dt;
-    this2->z += this2->direction_z * dt;
+    this2->direction_x = sin(this2->theta_x) * cos(this2->theta_y);
+    this2->direction_y = sin(this2->theta_x) * sin(this2->theta_y);
+    this2->direction_z = -cos(this2->theta_x);
 
-    normalize(&(this2->direction_x), &(this2->direction_y), &(this2->direction_z));
+    this2->x += dvx * dt;
+    this2->y += dvy * dt;
+    this2->z += dvz * dt;
 
-    for(int i = 0; i < NB_PROGRAMS; i++)
+    for (int i = 0; i < NB_PROGRAMS; i++)
     {
         int u_CameraPos = glGetUniformLocation(PROGRAM_ID[i], "u_CameraPos");
         glUniform3f(u_CameraPos, this2->x, this2->y, this2->z);
@@ -159,7 +161,7 @@ void controller_camera_draw(controller_p this)
 
     mat4_t view = mat4_inverse(inv_view);
 
-    for(int i = 0; i < NB_PROGRAMS; i++)
+    for (int i = 0; i < NB_PROGRAMS; i++)
     {
         glUseProgram(PROGRAM_ID[i]);
         // Matrice view : déplacements et rotations de la caméra dans le sens inverse
@@ -171,7 +173,6 @@ void controller_camera_draw(controller_p this)
     this2->old_mouse_y = this2->mouse_y;
 }
 
-// Fait pointer direction_ptr vers l'attribut "direction" de cette instance
 controller_camera_p Controller_camera(float x0, float y0, float z0)
 {
     controller_camera_p this = malloc(sizeof(controller_camera_t));
@@ -182,7 +183,7 @@ controller_camera_p Controller_camera(float x0, float y0, float z0)
     this->x = x0;
     this->y = y0;
     this->z = z0;
-    this->v = 0.05;
+    this->v = 0.2;
     this->v_x = 0.0;
     this->v_y = 0.0;
     this->v_z = 0.0;

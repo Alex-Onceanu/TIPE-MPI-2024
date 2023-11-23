@@ -4,6 +4,10 @@
 #include "controller.h"
 #include "../tools/vector.h"
 
+extern const double TARGET_TIME;
+extern double old_time;
+extern double dt;
+
 // Va "gérer" des controller_kinematics
 // Donc c'est physics_manager qui va ajouter des forces aux boules de pétanque (et autres objets)
 // Exemple ajoute le poids, des frottements (fluides & solides), forces de collision...
@@ -21,6 +25,8 @@ typedef struct physics_manager
 
 // Constructeur
 physics_manager_p Physics_manager();
+
+
 
 
 #include "controller_kinematics.h"

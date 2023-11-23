@@ -14,6 +14,7 @@
 // Cette "constante" globale stockera les ID OPENGL representant les deux "programmes" (= vertex shader + fragment shader)
 unsigned int PROGRAM_ID[NB_PROGRAMS] = { 0,0 };
 
+
 // Affiche les erreurs de shader et OpenGL
 void debug()
 {
@@ -29,9 +30,11 @@ void debug()
 }
 
 world_p world;
+
 double old_time = 0.0;
 double time_between_frames = 0.0; // en ms
-double target_time = 1.0 / 30.0;
+const double TARGET_TIME = 1.0 / FPS;
+double dt = 1.0;
 
 // Une seule itération de la boucle principale
 // Cette fonction est appelée 60 fois par seconde, correspond à 1 frame
@@ -40,9 +43,9 @@ EM_BOOL mainloop(double time, void *userData)
     time_between_frames = time - old_time;
     old_time = time;
     // printf("%f\n", time_between_frames);
-    if (time_between_frames < target_time)
+    if (time_between_frames < TARGET_TIME)
     {
-        sleep((unsigned int)(target_time - time_between_frames));
+        sleep((unsigned int)(TARGET_TIME - time_between_frames));
     }
 
     // Process input

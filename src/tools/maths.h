@@ -3,6 +3,9 @@
 
 #include <math.h>
 
+// Renvoie |x|
+float f_abs(float x);
+
 // Renvoie un nombre aleatoire de [| a, b |]
 int randint(int a, int b);
 

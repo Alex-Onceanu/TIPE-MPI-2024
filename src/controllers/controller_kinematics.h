@@ -27,8 +27,6 @@ typedef struct controller_kinematics
     // Vitesse angulaire (rd/s)
     float wx, wy, wz;
 
-    double old_time;
-
     // Liste de forces (force3_t), qui seront converties en dv/dt et dw/dt par PFD et TMC
     // On utilise un tableau statique et pas dynamique pour pas avoir à malloc/free à chaque frame
     // Et on est certains de ne jamais appliquer plus de 10 forces instantanées au même moment à un même objet

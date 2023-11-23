@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <time.h>
 #include <GLES2/gl2.h>
 
 #include "controller_kinematics.h"
@@ -14,16 +13,6 @@ void controller_kinematics_update(controller_p this)
 {
     // ruse de sioux
     controller_kinematics_p this2 = (controller_kinematics_p)this;
-
-    double current_time = (double)clock() / (double)CLOCKS_PER_SEC;
-    double time_between_frames = current_time - this2->old_time;
-    double target_time = 1.0 / FPS;
-    this2->old_time = current_time;
-    double dt = 1.0;
-    if (time_between_frames > target_time)
-    {
-        dt = time_between_frames / target_time;
-    }
 
     // Somme vectorielle des forces extérieures s'appliquant à l'objet
     force3_t resultante = { 0.0, 0.0, 0.0 };
@@ -100,7 +89,6 @@ controller_kinematics_p Controller_kinematics(float m, float x0, float y0, float
     this->wy = 0.;
     this->wz = 0.;
 
-    this->old_time = 0.0;
     this->nb_forces = 0;
 
     if(manager != NULL)

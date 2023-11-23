@@ -27,6 +27,6 @@ extern unsigned int PROGRAM_ID[NB_PROGRAMS];
 #define GRAVITY 0.03
 #define FLUID_MU 0.01
 #define SOLID_STATIC_MU 0.08
-#define SOLID_DYNAMIC_MU 0.05
+#define SOLID_DYNAMIC_MU 0.3
 
 #endif

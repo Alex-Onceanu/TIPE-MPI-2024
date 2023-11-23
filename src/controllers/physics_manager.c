@@ -1,10 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
 #include "../tools/constantes.h"
 #include "physics_manager.h"
 #include "../tools/maths.h"
-
 
 // CHANGER çA : gérer les NULL pour pas avoir 500 fonctions qui ne font rien
 /// ne fait rien
@@ -14,6 +14,14 @@ void id94(controller_p c) { return; }
 // C'est dans cet update que physics_manager va faire subir des forces aux controlleurs qu'il gère
 void physics_manager_update(controller_p this2)
 {
+    double current_time = (double)clock() / (double)CLOCKS_PER_SEC;
+    double time_between_frames = current_time - old_time;
+    old_time = current_time;
+    if (time_between_frames > TARGET_TIME)
+    {
+        dt = time_between_frames * FPS;
+    }
+
     physics_manager_p this = (physics_manager_p)this2;
     int nb_controllers = vector_len(this->kinematic_controllers);
     controller_kinematics_p tmp_controller = NULL;
@@ -21,8 +29,9 @@ void physics_manager_update(controller_p this2)
     float tmp_fy = 0.0;
     float tmp_fz = 0.0;
 
-    for(int i = 0; i < nb_controllers; i++)
+    for (int i = 0; i < nb_controllers; i++)
     {
+        // printf("i = %d\n", i);
         // Poids et frottements fluides : ces forces s'appliquent à tout le monde
         tmp_controller = (controller_kinematics_p)vector_get_at(this->kinematic_controllers, i);
 
@@ -30,20 +39,25 @@ void physics_manager_update(controller_p this2)
         tmp_fy = -tmp_controller->vy * FLUID_MU;
         tmp_fz = -tmp_controller->vz * FLUID_MU;
 
-        printf("it %d : x : %f, y : %f, z : %f\n", i, tmp_controller->x, tmp_controller->y, tmp_controller->z);
-        
+        // printf("it %d : x : %f, y : %f, z : %f\n", i, tmp_controller->x, tmp_controller->y, tmp_controller->z);
+
         controller_kinematics_add_force(tmp_controller, Force3(tmp_fx, tmp_fy, tmp_fz));
 
         // Réaction du support : si y < 0 on ajoute une force valant -1.5 * vy (effet de rebond)
         // !! ne pas oublier d'implémenter les frottements solides !!
-        if(tmp_controller->y <= 0.0)
+        if (tmp_controller->y <= 0.0)
         {
             tmp_controller->y = 0.0;
-            tmp_fx = 0.0;
-            tmp_fy = -tmp_controller->vy * tmp_controller->mass * 1.5;
-            tmp_fz = 0.0;
-            
-            controller_kinematics_add_force(tmp_controller, Force3(tmp_fx, tmp_fy, tmp_fz));
+            if (f_abs(tmp_controller->vy) > 0.1) // ???
+            {
+                tmp_fx = -SOLID_DYNAMIC_MU * tmp_controller->vx * tmp_controller->mass / dt;
+                // tmp_fx = 0.0;
+                tmp_fy = -tmp_controller->vy * tmp_controller->mass * 1.4 / dt;
+                // tmp_fz = 0.0;
+                tmp_fz = -SOLID_DYNAMIC_MU * tmp_controller->vz * tmp_controller->mass / dt;
+
+                controller_kinematics_add_force(tmp_controller, Force3(tmp_fx, tmp_fy, tmp_fz));
+            }
         }
         else
         {
@@ -51,7 +65,7 @@ void physics_manager_update(controller_p this2)
             tmp_fx = 0.0;
             tmp_fy = -tmp_controller->mass * GRAVITY;
             tmp_fz = 0.0;
-            
+
             controller_kinematics_add_force(tmp_controller, Force3(tmp_fx, tmp_fy, tmp_fz));
         }
     }
