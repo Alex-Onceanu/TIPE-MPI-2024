@@ -6,6 +6,9 @@
 // Renvoie |x|
 float f_abs(float x);
 
+// Renvoie la norme 2 du vecteur ( fx,fy,fz ), i.e || ( fx,fy,fz ) ||_2
+float norme2(float fx, float fy, float fz);
+
 // Renvoie un nombre aleatoire de [| a, b |]
 int randint(int a, int b);
 
@@ -27,7 +30,10 @@ typedef struct
 force3_t Force3(float __fx, float __fy, float __fz);
 
 // Fait en sorte que le vecteur de coordonnées (fx, fy, fz) ait pour norme 1 (inplace)
-void normalize(float* fx, float* fy, float* fz);
+void normalize(float *fx, float *fy, float *fz);
+
+// Renvoie u.v, donc u.x v.x + u.y v.y + u.z v.z
+float produit_scalaire(force3_t u, force3_t v);
 
 // _______________________________Matrice________________________________
 

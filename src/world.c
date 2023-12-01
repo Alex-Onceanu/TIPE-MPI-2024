@@ -57,7 +57,7 @@ world_p world_init()
         entity_add_controller(e, (controller_p)cs);
         vector_append(this->entities, (void *)e);
     }
-    lance_boule(this);
+    // lance_boule(this);
     {
         // Le sol est un pavé
         entity_p sol = Entity(COLOR_PROGRAM);

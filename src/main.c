@@ -12,8 +12,7 @@
 #include "user_event.h"
 
 // Cette "constante" globale stockera les ID OPENGL representant les deux "programmes" (= vertex shader + fragment shader)
-unsigned int PROGRAM_ID[NB_PROGRAMS] = { 0,0 };
-
+unsigned int PROGRAM_ID[NB_PROGRAMS] = {0, 0};
 
 // Affiche les erreurs de shader et OpenGL
 void debug()
@@ -76,9 +75,9 @@ int main()
     glEnable(GL_DEPTH_TEST);
     // Éviter le Z-fighting
     glDepthFunc(GL_LEQUAL);
-    
+
     printf("a\n");
-    for(int i = 0; i < NB_PROGRAMS; i++)
+    for (int i = 0; i < NB_PROGRAMS; i++)
     {
         glUseProgram(PROGRAM_ID[i]);
 
@@ -96,7 +95,7 @@ int main()
     // Instanciation de world (instance principale)
     // Sera parametre de mainloop sous forme de void*
     world = world_init();
-    
+
     debug();
 
     // Le mainloop est ici

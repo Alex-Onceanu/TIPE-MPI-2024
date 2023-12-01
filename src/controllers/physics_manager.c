@@ -11,6 +11,13 @@
 void id93(controller_p c, void *data) { return; }
 void id94(controller_p c) { return; }
 
+// Renvoie 1 si la boule c1 touche la boule c2, 0 sinon
+int collision(controller_kinematics_p c1, controller_kinematics_p c2)
+{
+    float r = 2.0;
+    return norme2(c1->x - c2->x, c1->y - c2->y, c1->z - c2->z) < r;
+}
+
 // C'est dans cet update que physics_manager va faire subir des forces aux controlleurs qu'il gère
 void physics_manager_update(controller_p this2)
 {
@@ -67,6 +74,42 @@ void physics_manager_update(controller_p this2)
             tmp_fz = 0.0;
 
             controller_kinematics_add_force(tmp_controller, Force3(tmp_fx, tmp_fy, tmp_fz));
+        }
+    }
+
+    // On gère les collisions
+    force3_t impact_direction = {};
+    float impact_coef = 0.0;
+    float impact_coef_1 = 0.0;
+    float impact_coef_2 = 0.0;
+    controller_kinematics_p tmp_controller_2 = NULL;
+    for (int i = 0; i < nb_controllers; i++)
+    {
+        tmp_controller = (controller_kinematics_p)vector_get_at(this->kinematic_controllers, i);
+        for (int j = i + 1; j < nb_controllers; j++)
+        {
+            tmp_controller_2 = (controller_kinematics_p)vector_get_at(this->kinematic_controllers, j);
+            if (collision(tmp_controller, tmp_controller_2))
+            {
+                printf("Collision !\n");
+                impact_direction = Force3(tmp_controller->x - tmp_controller_2->x, tmp_controller->y - tmp_controller_2->y, tmp_controller->z - tmp_controller_2->z);
+                normalize(&(impact_direction.fx), &(impact_direction.fy), &(impact_direction.fz));
+                impact_coef_1 = f_abs(produit_scalaire(impact_direction, Force3(tmp_controller->vx, tmp_controller->vy, tmp_controller->vz)));
+                impact_coef_2 = f_abs(produit_scalaire(impact_direction, Force3(tmp_controller_2->vx, tmp_controller_2->vy, tmp_controller_2->vz)));
+                impact_coef = 0.5 * (impact_coef_1 + impact_coef_2);
+
+                tmp_fx = impact_coef * impact_direction.fx * tmp_controller->mass / dt;
+                tmp_fy = impact_coef * impact_direction.fy * tmp_controller->mass / dt;
+                tmp_fz = impact_coef * impact_direction.fz * tmp_controller->mass / dt;
+
+                controller_kinematics_add_force(tmp_controller, Force3(tmp_fx, tmp_fy, tmp_fz));
+
+                tmp_fx = -impact_coef * impact_direction.fx * tmp_controller_2->mass / dt;
+                tmp_fy = -impact_coef * impact_direction.fy * tmp_controller_2->mass / dt;
+                tmp_fz = -impact_coef * impact_direction.fz * tmp_controller_2->mass / dt;
+
+                controller_kinematics_add_force(tmp_controller_2, Force3(tmp_fx, tmp_fy, tmp_fz));
+            }
         }
     }
 }

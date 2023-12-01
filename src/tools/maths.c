@@ -37,13 +37,23 @@ force3_t Force3(float __fx, float __fy, float __fz)
     return res;
 }
 
+float norme2(float fx, float fy, float fz)
+{
+    return sqrtf(fx * fx + fy * fy + fz * fz);
+}
+
 void normalize(float *fx, float *fy, float *fz)
 {
-    float norme2 = sqrtf(*fx * *fx + *fy * *fy + *fz * *fz);
+    float n = norme2(*fx, *fy, *fz);
 
-    *fx /= norme2;
-    *fy /= norme2;
-    *fz /= norme2;
+    *fx /= n;
+    *fy /= n;
+    *fz /= n;
+}
+
+float produit_scalaire(force3_t u, force3_t v)
+{
+    return u.fx * v.fx + u.fy * v.fy + u.fz * v.fz;
 }
 
 mat4_p mat4_id_p()
