@@ -11,6 +11,10 @@ typedef struct controller
     unsigned int program_index;
 } controller_t, *controller_p;
 
+// Ne fait rien
+void id(controller_p c);
+void id_for_process_input(controller_p c, void *data);
+
 // Constructeur
 controller_p Controller();
 

@@ -2,15 +2,21 @@
 
 #include "controller.h"
 
-// Ne fait rien.
-void id00(controller_p c, void *data) { return; }
-void id(controller_p c) { return; }
+void id(controller_p c)
+{
+    return;
+}
+
+void id_for_process_input(controller_p c, void *data)
+{
+    return;
+}
 
 controller_p Controller()
 {
     controller_p this = malloc(sizeof(controller_t));
 
-    this->process_input = id00;
+    this->process_input = id_for_process_input;
     this->update = id;
     this->draw = id;
 

@@ -3,13 +3,13 @@
 
 #include <math.h>
 
-// Renvoie |x|
-float f_abs(float x);
+#define SQUARED(x) ((x) * (x))
+#define ABS(x) (x > 0 ? x : -x)
 
-// Renvoie la norme 2 du vecteur ( fx,fy,fz ), i.e || ( fx,fy,fz ) ||_2
-float norme2(float fx, float fy, float fz);
+// Mon implémentation de la racine carrée (avec méthode d'Euler)
+float my_sqrtf(float x);
 
-// Renvoie un nombre aleatoire de [| a, b |]
+// Renvoie un nombre aleatoire de [| a, b |] (Ne pas oublier l'appel de srand avant)
 int randint(int a, int b);
 
 // Fait en sorte que x reste dans [| min_x, max_x |]
@@ -29,11 +29,25 @@ typedef struct
 // Constructeur (mais sur la pile)
 force3_t Force3(float __fx, float __fy, float __fz);
 
+// Combinaison linéaire, renvoie f1 + λ * f2
+#define LINEAR_COMBINATION(f1, f2, lambda) Force3(f1.fx + lambda * f2.fx, f1.fy + lambda * f2.fy, f1.fz + lambda * f2.fz)
+
+// Opérateurs + et - pour des forces
+force3_t force3_add(force3_t f1, force3_t f2);
+force3_t force3_sub(force3_t f1, force3_t f2);
+
+#define SQ_NORME2(f) (f.fx * f.fx + f.fy * f.fy + f.fz * f.fz)
+
+// Renvoie la norme 2 du vecteur ( fx,fy,fz ), i.e || ( fx,fy,fz ) ||_2
+float norme2(force3_t f);
+
 // Fait en sorte que le vecteur de coordonnées (fx, fy, fz) ait pour norme 1 (inplace)
-void normalize(float *fx, float *fy, float *fz);
+void normalize(force3_p f);
+
+#define DOT_PRODUCT(u, v) (u.fx * v.fx + u.fy * v.fy + u.fz * v.fz)
 
 // Renvoie u.v, donc u.x v.x + u.y v.y + u.z v.z
-float produit_scalaire(force3_t u, force3_t v);
+// float produit_scalaire(force3_t u, force3_t v);
 
 // _______________________________Matrice________________________________
 

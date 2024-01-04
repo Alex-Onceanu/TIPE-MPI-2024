@@ -4,9 +4,10 @@
 
 #include "maths.h"
 
-float f_abs(float x)
+float my_sqrtf(float x)
 {
-    return x < 0.0 ? -x : x;
+    // TODO
+    return sqrtf(x);
 }
 
 int randint(int a, int b)
@@ -37,18 +38,28 @@ force3_t Force3(float __fx, float __fy, float __fz)
     return res;
 }
 
-float norme2(float fx, float fy, float fz)
+force3_t force3_add(force3_t f1, force3_t f2)
 {
-    return sqrtf(fx * fx + fy * fy + fz * fz);
+    return LINEAR_COMBINATION(f1, f2, 1.0);
 }
 
-void normalize(float *fx, float *fy, float *fz)
+force3_t force3_sub(force3_t f1, force3_t f2)
 {
-    float n = norme2(*fx, *fy, *fz);
+    return LINEAR_COMBINATION(f1, f2, -1.0);
+}
 
-    *fx /= n;
-    *fy /= n;
-    *fz /= n;
+float norme2(force3_t f)
+{
+    return my_sqrtf(SQ_NORME2(f));
+}
+
+void normalize(force3_p f)
+{
+    float n = norme2(*f);
+
+    f->fx /= n;
+    f->fy /= n;
+    f->fz /= n;
 }
 
 float produit_scalaire(force3_t u, force3_t v)

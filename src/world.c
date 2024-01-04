@@ -48,7 +48,7 @@ world_p world_init()
     {
         // On represente la source de lumiere par un "soleil" cubique
         entity_p e = Entity(COLOR_PROGRAM);
-        controller_kinematics_p ck = Controller_kinematics(0.0, SUN_X, SUN_Y, SUN_Z, 0.0, 0.0, 0.0, NULL);
+        controller_kinematics_p ck = Controller_kinematics(0.0, Force3(SUN_X, SUN_Y, SUN_Z), Force3(0.0, 0.0, 0.0), NULL);
 
         model_3D_p cube3d = Sphere(0.8, 1.0, 1.0, 1.0);
         controller_solid_p cs = Controller_solid(cube3d, SOLEIL);
@@ -61,7 +61,7 @@ world_p world_init()
     {
         // Le sol est un pavé
         entity_p sol = Entity(COLOR_PROGRAM);
-        controller_kinematics_p c1 = Controller_kinematics(1000000.0, 0.0, -2.0, 0.0, 0.0, 0.0, 0.0, NULL);
+        controller_kinematics_p c1 = Controller_kinematics(1000000.0, Force3(0.0, -2.0, 0.0), Force3(0.0, 0.0, 0.0), NULL);
 
         model_3D_p pav3d = Pave(600.0, 2.0, 600.0, 0.44, 0.401, 0.3313, NULL);
         assert(pav3d != NULL);
@@ -75,7 +75,7 @@ world_p world_init()
     {
         // Le ciel est un cube
         entity_p e = Entity(SKYBOX_PROGRAM);
-        controller_kinematics_p ck = Controller_kinematics(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, NULL);
+        controller_kinematics_p ck = Controller_kinematics(0.0, Force3(0.0, 1.0, 0.0), Force3(0.0, 0.0, 0.0), NULL);
 
         model_3D_p cube3d = Cube(4.0, 1.0, 1.0, 1.0, SKYBOX);
         assert(cube3d != NULL);
@@ -99,6 +99,7 @@ world_p world_init()
 void world_add_event(world_p this, user_event_t e_t)
 {
     // Il faut allouer l'event sur le tas pour pouvoir l'ajouter au vecteur..
+    // TODO : changer le vecteur pour pouvoir ajouter des éléments sans malloc
     user_event_p e_p = malloc(sizeof(user_event_t));
     e_p->type = e_t.type;
     e_p->data = e_t.data;
@@ -114,10 +115,11 @@ void lance_boule(world_p this)
     const float v0 = 2.0;
 
     controller_kinematics_p ck = Controller_kinematics(mass,
-                                                       this->camera->x + this->camera->direction_x * 10.0,
-                                                       this->camera->y + this->camera->direction_y * 10.0,
-                                                       this->camera->z + this->camera->direction_z * 10.0,
-                                                       0.0, 0.0, 0.0, this->manager);
+                                                       Force3(this->camera->x + this->camera->direction_x * 10.0,
+                                                              this->camera->y + this->camera->direction_y * 10.0,
+                                                              this->camera->z + this->camera->direction_z * 10.0),
+                                                       Force3(0.0, 0.0, 0.0),
+                                                       this->manager);
 
     controller_kinematics_add_force(ck, Force3(this->camera->direction_x * v0 * mass,
                                                this->camera->direction_y * v0 * mass,

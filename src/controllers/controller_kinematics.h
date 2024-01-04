@@ -7,43 +7,46 @@
 // On part du principe que personne ne va jamais subir simultanément 10 forces
 #define NB_MAX_FORCES 10
 
-// Bientot l'acceleration et les forces...
-
 typedef struct controller_kinematics
 {
     // Inheritance, toute instance contient une instance pere (super-ieure)
     controller_t super;
 
-    // Masse
     float mass;
 
-    // Position
-    float x, y, z;
-    // Vitesse
-    float vx, vy, vz;
+    // Position et position de l'objet à la frame dernière
+    force3_t pos;
+    force3_t old_pos;
 
-    // Angle de rotation (EN RADIANS)
-    float theta_x, theta_y, theta_z;
-    // Vitesse angulaire (rd/s)
-    float wx, wy, wz;
+    // Vitesse actuelle et vitesse qu'avait l'objet à la frame dernière
+    force3_t speed;
+    force3_t old_speed;
 
-    // Liste de forces (force3_t), qui seront converties en dv/dt et dw/dt par PFD et TMC
+    // Angle de rotation (EN RADIANS) autour de chaque axe (x,y,z)
+    force3_t theta;
+    // Vitesse angulaire (rd/s) autour de chaque axe (x,y,z)
+    force3_t omega;
+
+    // Si cet objet est une boule, cet attribut est son rayon. Sinon, vaut 0
+    // En fait on va essentiellement gérer des boules, pas d'autres objets complexes
+    float radius;
+
+    // Tableau de forces (force3_t), qui seront converties en dv/dt et dw/dt par PFD et TMC
     // On utilise un tableau statique et pas dynamique pour pas avoir à malloc/free à chaque frame
     // Et on est certains de ne jamais appliquer plus de 10 forces instantanées au même moment à un même objet
     int nb_forces;
     force3_t forces[NB_MAX_FORCES];
 } controller_kinematics_t, *controller_kinematics_p;
 
-
 #include "physics_manager.h"
 
 // Constructeur
-controller_kinematics_p Controller_kinematics(float m, float x0, float y0, float z0, float theta_x0, float theta_y0, float theta_z0, physics_manager_p manager);
+controller_kinematics_p Controller_kinematics(float __mass, force3_t initial_pos, force3_t initial_theta, physics_manager_p manager);
 
 // Destructeur
 void controller_kinematics_free(controller_kinematics_p this);
 
-// Ajoute la force de vecteur (fx, fy, fz) à la liste de forces s'appliquant à cet objet
+// Ajoute la force de vecteur f à la liste de forces s'appliquant à cet objet
 void controller_kinematics_add_force(controller_kinematics_p this, force3_t f);
 
 #endif

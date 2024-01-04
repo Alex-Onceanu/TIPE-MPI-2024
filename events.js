@@ -1,3 +1,8 @@
+var finished_loading = false;
+
+onload = function (e) {
+    Module.onRuntimeInitialized = () => { finished_loading = true; };
+}
 
 function clamp(pos, min_x, max_x, min_y, max_y) {
     if (pos.x < min_x) {
@@ -14,15 +19,19 @@ function clamp(pos, min_x, max_x, min_y, max_y) {
     }
 }
 
+
 onmousedown = function (e) {
+    if (!finished_loading) return;
     Module.ccall('mouse_down');
 }
 
 onmouseup = function (e) {
+    if (!finished_loading) return;
     Module.ccall('mouse_up');
 }
 
 onmousemove = function (e) {
+    if (!finished_loading) return;
     var rect = document.getElementById("canvas").getBoundingClientRect();
     var max_x = rect.right - rect.left;
     var max_y = rect.bottom - rect.top;
@@ -38,6 +47,7 @@ onmousemove = function (e) {
 }
 
 document.addEventListener('keydown', (event) => {
+    if (!finished_loading) return;
     var code = event.code;
     switch (code) {
         case 'KeyW':
@@ -82,6 +92,7 @@ document.addEventListener('keydown', (event) => {
 }, false);
 
 document.addEventListener('keyup', (event) => {
+    if (!finished_loading) return;
     var code = event.code;
     switch (code) {
         case 'KeyW':
