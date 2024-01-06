@@ -1,6 +1,7 @@
 #include <stdlib.h>
-#include <GLES2/gl2.h>
+#include <GLES3/gl3.h>
 
+#include <stdio.h>
 #include "controller_kinematics.h"
 #include "../tools/constantes.h"
 #include "../tools/maths.h"
@@ -10,7 +11,7 @@ void controller_kinematics_update(controller_p __this)
 {
     // ruse de sioux
     controller_kinematics_p this = (controller_kinematics_p)__this;
-
+    
     // Somme vectorielle des forces extérieures s'appliquant à l'objet
     force3_t resultante = {0.0, 0.0, 0.0};
     for (int i = 0; i < this->nb_forces; i++)
@@ -49,6 +50,7 @@ void controller_kinematics_update(controller_p __this)
 void controller_kinematics_draw(controller_p __this)
 {
     controller_kinematics_p this = (controller_kinematics_p)__this;
+
 
     // tr est la matrice de transformation de l'ensemble des translations que va subir l'objet
     // En fait il va juste subir la translation qui l'emmene de (0,0,0) à sa position actuelle

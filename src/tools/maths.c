@@ -373,7 +373,7 @@ mat4_t projection()
     res.coefs[14] = -1.0;
     res.coefs[15] = 0.0;
 
-    mat4_affiche(res);
+    // mat4_affiche(res);
 
     return res;
 }

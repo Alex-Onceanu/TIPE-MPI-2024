@@ -3,11 +3,12 @@
 #include <string.h>
 #include <time.h>
 
-#include <GLES2/gl2.h>
+#include <GLES3/gl3.h>
 #include <emscripten/html5.h>
 
 #include "../tools/reader.h"
 #include "../tools/constantes.h"
+#include "model_3D.h"
 
 unsigned int compile_shader(unsigned int type, const char *source)
 {
@@ -32,7 +33,7 @@ int create_program(const char *vertex_shader, const char *fragment_shader)
     glDeleteShader(vs);
     glDeleteShader(fs);
 
-    // gl Detach shader ?
+    // Penser au moment de free à gl Detach shader ?
 
     return program;
 }
@@ -40,6 +41,10 @@ int create_program(const char *vertex_shader, const char *fragment_shader)
 char *read_shader(const char *filename)
 {
     FILE *shader_file = fopen(filename, "r");
+    if(shader_file == NULL)
+    {
+        printf("Cannot load file %s\n", filename);
+    }
 
     int maxbuf = 200;
     char *res = malloc((1 + maxbuf) * sizeof(char));
@@ -61,6 +66,72 @@ char *read_shader(const char *filename)
     return res;
 }
 
+
+void init_buffers()
+{
+    const void* vertex_buffer;
+    const void* index_buffer;
+
+    // __________________________________________SOL________________________________________________________
+    
+    // Vertex buffer, on envoie à OpenGL les données du triangle
+    vertex_buffer =  init_vertex_buffer_pave_data(NB_VERTEX_PER_BUFFER + GROUND_BUF, 600.0, 2.0, 600.0, 0.44, 0.401, 0.3313);
+    glGenBuffers(1, VERTEX_BUFFER_ID + GROUND_BUF);
+    glBindBuffer(GL_ARRAY_BUFFER, VERTEX_BUFFER_ID[GROUND_BUF]);
+    glBufferData(GL_ARRAY_BUFFER, 2 * NB_VERTEX_PER_BUFFER[GROUND_BUF] * NB_ATTRIBUTES_VERTEX * sizeof(float), vertex_buffer, GL_DYNAMIC_DRAW);
+
+    // Pas de index buffer pour les cubes
+    NB_INDEX_PER_BUFFER[GROUND_BUF] = 0;
+    INDEX_BUFFER_ID[GROUND_BUF] = 0;
+
+    // ___________________________________________Fin SOL___________________________________________________
+    // _________________________________________CUBE________________________________________________________
+
+    // Vertex buffer, on envoie à OpenGL les données du triangle
+    vertex_buffer =  init_vertex_buffer_pave_data(NB_VERTEX_PER_BUFFER + CUBE_TEST_BUF, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0);
+    glGenBuffers(1, VERTEX_BUFFER_ID + CUBE_TEST_BUF);
+    glBindBuffer(GL_ARRAY_BUFFER, VERTEX_BUFFER_ID[CUBE_TEST_BUF]);
+    glBufferData(GL_ARRAY_BUFFER, 2 * NB_VERTEX_PER_BUFFER[CUBE_TEST_BUF] * NB_ATTRIBUTES_VERTEX * sizeof(float), vertex_buffer, GL_DYNAMIC_DRAW);
+
+    // Pas de index buffer pour les cubes
+    NB_INDEX_PER_BUFFER[CUBE_TEST_BUF] = 0;
+    INDEX_BUFFER_ID[CUBE_TEST_BUF] = 0;
+
+    // ________________________________________Fin cube________________________________________
+    // ________________________________________boule de pétanque________________________________________
+    
+
+    // Vertex buffer, on envoie à OpenGL les données du triangle
+    vertex_buffer = init_vertex_buffer_sphere_data(NB_VERTEX_PER_BUFFER + SPHERE_BIG_BUF, BIG_SPHERE_RADIUS, 0.5, 0.5, 0.5);
+    glGenBuffers(1, VERTEX_BUFFER_ID + SPHERE_BIG_BUF);
+    glBindBuffer(GL_ARRAY_BUFFER, VERTEX_BUFFER_ID[SPHERE_BIG_BUF]);
+    glBufferData(GL_ARRAY_BUFFER, 2 * NB_VERTEX_PER_BUFFER[SPHERE_BIG_BUF] * NB_ATTRIBUTES_VERTEX * sizeof(float), vertex_buffer, GL_DYNAMIC_DRAW);
+
+    // Bind et interprétation du index_buffer
+    index_buffer = init_index_buffer_sphere(NB_INDEX_PER_BUFFER + SPHERE_BIG_BUF);
+    glGenBuffers(1, INDEX_BUFFER_ID + SPHERE_BIG_BUF);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, INDEX_BUFFER_ID[SPHERE_BIG_BUF]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, NB_INDEX_PER_BUFFER[SPHERE_BIG_BUF] * sizeof(unsigned int), index_buffer, GL_DYNAMIC_DRAW);
+    
+    // ________________________________________Fin boule de pétanque________________________________________
+    // ________________________________________Cochonnet_____________________________________________
+
+    // Vertex buffer, on envoie à OpenGL les données du triangle
+    vertex_buffer = init_vertex_buffer_sphere_data(NB_VERTEX_PER_BUFFER + SPHERE_SMALL_BUF, SMALL_SPHERE_RADIUS, 1.0, 1.0, 1.0);
+    glGenBuffers(1, VERTEX_BUFFER_ID + SPHERE_SMALL_BUF);
+    glBindBuffer(GL_ARRAY_BUFFER, VERTEX_BUFFER_ID[SPHERE_SMALL_BUF]);
+    glBufferData(GL_ARRAY_BUFFER, 2 * NB_VERTEX_PER_BUFFER[SPHERE_SMALL_BUF] * NB_ATTRIBUTES_VERTEX * sizeof(float), vertex_buffer, GL_DYNAMIC_DRAW);
+
+    // Bind et interprétation du index_buffer
+    index_buffer = init_index_buffer_sphere(NB_INDEX_PER_BUFFER + SPHERE_SMALL_BUF);
+    glGenBuffers(1, INDEX_BUFFER_ID + SPHERE_SMALL_BUF);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, INDEX_BUFFER_ID[SPHERE_SMALL_BUF]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, NB_INDEX_PER_BUFFER[SPHERE_SMALL_BUF] * sizeof(unsigned int), index_buffer, GL_DYNAMIC_DRAW);
+    
+    // ________________________________________Fin Cochonnet_____________________________________________
+}
+
+
 // paths = 6 chemins de fichiers (.ppm par pitié)
 unsigned int init_cubemap(const char* paths[6])
 {
@@ -77,8 +148,9 @@ unsigned int init_cubemap(const char* paths[6])
     // ...on choisit le mode CLAMP_TO_EDGE donc si l'image est à peine trop petite on "étire ses bords" jusqu'à remplir ce qu'il manque
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
     // Pour chaque face
     int width, height, nrChannels;
@@ -121,7 +193,10 @@ void init()
     EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx = emscripten_webgl_create_context("#canvas", &attr);
     emscripten_webgl_make_context_current(ctx);
 
-    char* shader_paths[NB_PROGRAMS][2] = { {"../res/shaders/color.vert","../res/shaders/color.frag" },{ "../res/shaders/texture.vert","../res/shaders/texture.frag" },{ "../res/shaders/skybox.vert","../res/shaders/skybox.frag" } };
+    char* shader_paths[NB_PROGRAMS][2] = {  {"../res/shaders/color.vert","../res/shaders/color.frag" },
+                                            { "../res/shaders/texture.vert","../res/shaders/texture.frag" },
+                                            { "../res/shaders/skybox.vert","../res/shaders/skybox.frag" },
+                                            { "../res/shaders/color.vert","../res/shaders/color.frag" } };
 
     for(int program_it = 0; program_it < NB_PROGRAMS; program_it++)
     {
@@ -136,4 +211,6 @@ void init()
         free(vs_source);
         free(fs_source);
     }
+
+    init_buffers();
 }

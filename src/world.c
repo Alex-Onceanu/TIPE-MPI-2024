@@ -28,6 +28,8 @@ struct world
 typedef struct world world_t, *world_p;
 void lance_boule(world_p);
 
+#include "modelisation/init.h"
+
 world_p world_init()
 {
     world_p this = malloc(sizeof(world_t));
@@ -48,23 +50,24 @@ world_p world_init()
     {
         // On represente la source de lumiere par un "soleil" cubique
         entity_p e = Entity(COLOR_PROGRAM);
-        controller_kinematics_p ck = Controller_kinematics(0.0, Force3(SUN_X, SUN_Y, SUN_Z), Force3(0.0, 0.0, 0.0), NULL);
+        controller_kinematics_p ck = Controller_kinematics(1.0, Force3(SUN_X, SUN_Y, SUN_Z), Force3(0.0, 0.0, 0.0), NULL);
 
-        model_3D_p cube3d = Sphere(0.8, 1.0, 1.0, 1.0);
-        controller_solid_p cs = Controller_solid(cube3d, SOLEIL);
+        // model_3D_p cube3d = Sphere(0.8, 1.0, 1.0, 1.0);
+        model_3D_t sun = { SPHERE_SMALL_BUF,NO_TEXTURE };
+        controller_solid_p cs = Controller_solid(sun, SOLEIL);
 
         entity_add_controller(e, (controller_p)ck);
         entity_add_controller(e, (controller_p)cs);
         vector_append(this->entities, (void *)e);
     }
-    // lance_boule(this);
+
     {
         // Le sol est un pavé
         entity_p sol = Entity(COLOR_PROGRAM);
         controller_kinematics_p c1 = Controller_kinematics(1000000.0, Force3(0.0, -2.0, 0.0), Force3(0.0, 0.0, 0.0), NULL);
 
-        model_3D_p pav3d = Pave(600.0, 2.0, 600.0, 0.44, 0.401, 0.3313, NULL);
-        assert(pav3d != NULL);
+        // model_3D_p pav3d = Pave(600.0, 2.0, 600.0, 0.44, 0.401, 0.3313, NULL);
+        model_3D_t pav3d = { GROUND_BUF,NO_TEXTURE };
         controller_solid_p c2 = Controller_solid(pav3d, SABLE);
 
         entity_add_controller(sol, (controller_p)c1);
@@ -75,10 +78,10 @@ world_p world_init()
     {
         // Le ciel est un cube
         entity_p e = Entity(SKYBOX_PROGRAM);
-        controller_kinematics_p ck = Controller_kinematics(0.0, Force3(0.0, 1.0, 0.0), Force3(0.0, 0.0, 0.0), NULL);
+        controller_kinematics_p ck = Controller_kinematics(1.0, Force3(0.0, 1.0, 0.0), Force3(0.0, 0.0, 0.0), NULL);
 
-        model_3D_p cube3d = Cube(4.0, 1.0, 1.0, 1.0, SKYBOX);
-        assert(cube3d != NULL);
+        // model_3D_p cube3d = Cube(4.0, 1.0, 1.0, 1.0, SKYBOX);
+        model_3D_t cube3d = { CUBE_TEST_BUF,init_cubemap(SKYBOX) };
         controller_solid_p cs = Controller_solid(cube3d, SOLEIL);
 
         entity_add_controller(e, (controller_p)ck);
@@ -111,7 +114,7 @@ void lance_boule(world_p this)
 {
     entity_p e = Entity(COLOR_PROGRAM);
     // masse réelle d'une boule de petanque : 0,730 kg
-    const float mass = 1.0;
+    const float mass = 0.73;
     const float v0 = 2.0;
 
     controller_kinematics_p ck = Controller_kinematics(mass,
@@ -135,7 +138,8 @@ void lance_boule(world_p this)
     //                                             0.5,
     //                                             0.2 ));
 
-    model_3D_p model = Sphere(1.0, 0.3, 0.3, 0.3);
+    // model_3D_p model = Sphere(1.0, 0.3, 0.3, 0.3);
+    model_3D_t model = { SPHERE_BIG_BUF,NO_TEXTURE };
     controller_solid_p cs = Controller_solid(model, FER);
 
     entity_add_controller(e, (controller_p)ck);

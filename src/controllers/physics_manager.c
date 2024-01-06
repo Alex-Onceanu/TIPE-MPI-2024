@@ -124,7 +124,7 @@ void physics_manager_update(controller_p this2)
             {
                 tmp_fx = -SOLID_DYNAMIC_MU * tmp_controller->speed.fx * tmp_controller->mass / dt;
                 // tmp_fx = 0.0;
-                tmp_fy = -tmp_controller->speed.fy * tmp_controller->mass * 1.4 / dt;
+                tmp_fy = -tmp_controller->speed.fy * tmp_controller->mass * 1.2 / dt;
                 // tmp_fz = 0.0;
                 tmp_fz = -SOLID_DYNAMIC_MU * tmp_controller->speed.fz * tmp_controller->mass / dt;
 

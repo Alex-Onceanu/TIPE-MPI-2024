@@ -10,35 +10,88 @@
 #include "../tools/constantes.h"
 #include "materiau.h"
 
-#include <GLES2/gl2.h>
+#include <GLES3/gl3.h>
 
-model_3D_p Model_3D(unsigned int __nb_vertex, vertex_t *__vertex_buffer, unsigned int __nb_index, unsigned int *__index_buffer, const char* cube_images[6])
+
+// Précision du modèle 3D de la sphère, un petit pas donnera une sphère bien lisse mais avec beaucoup de vertex
+// 2 <= SPHERE_STEP <= 45
+#define SPHERE_STEP 10
+
+// _____________________________________________Init OpenGL buffers____________________________________________________________________________
+
+vertex_t* init_vertex_buffer_pave(unsigned int *nb_vertex, double width, double height, double depth, double r, double g, double b)
 {
-    model_3D_p this = malloc(sizeof(model_3D_t));
+    double w = width / 2.0;
+    double h = height / 2.0;
+    double d = depth / 2.0;
 
-    this->nb_vertex = __nb_vertex;
-    this->vertex_buffer = __vertex_buffer;
-    this->nb_index = __nb_index;
-    this->index_buffer = __index_buffer;
+    vertex_t vertex[] = {
+        // x, y, z, r, g, b, normale.x, normale.y, normale.z
+        Vertex(w, -h, d, r, g, b, 0.0, -1.0, 0.0),
+        Vertex(w, -h, -d, r, g, b, 0.0, -1.0, 0.0),
+        Vertex(-w, -h, d, r, g, b, 0.0, -1.0, 0.0),
+        Vertex(w, -h, -d, r, g, b, 0.0, -1.0, 0.0),
+        Vertex(-w, -h, -d, r, g, b, 0.0, -1.0, 0.0),
+        Vertex(-w, -h, d, r, g, b, 0.0, -1.0, 0.0),
 
-    if(cube_images == NULL) this->cubemap_id = NO_TEXTURE;
-    else this->cubemap_id = init_cubemap(cube_images);
+        Vertex(-w, h, d, r, g, b, -1.0, 0.0, 0.0),
+        Vertex(-w, -h, d, r, g, b, -1.0, 0.0, 0.0),
+        Vertex(-w, -h, -d, r, g, b, -1.0, 0.0, 0.0),
+        Vertex(-w, h, d, r, g, b, -1.0, 0.0, 0.0),
+        Vertex(-w, -h, -d, r, g, b, -1.0, 0.0, 0.0),
+        Vertex(-w, h, -d, r, g, b, -1.0, 0.0, 0.0),
 
-    return this;
+        Vertex(-w, -h, d, r, g, b, 0.0, 0.0, 1.0),
+        Vertex(w, -h, d, r, g, b, 0.0, 0.0, 1.0),
+        Vertex(w, h, d, r, g, b, 0.0, 0.0, 1.0),
+        Vertex(-w, -h, d, r, g, b, 0.0, 0.0, 1.0),
+        Vertex(w, h, d, r, g, b, 0.0, 0.0, 1.0),
+        Vertex(-w, h, d, r, g, b, 0.0, 0.0, 1.0),
+
+        Vertex(-w, -h, -d, r, g, b, 0.0, 0.0, -1.0),
+        Vertex(w, -h, -d, r, g, b, 0.0, 0.0, -1.0),
+        Vertex(w, h, -d, r, g, b, 0.0, 0.0, -1.0),
+        Vertex(-w, -h, -d, r, g, b, 0.0, 0.0, -1.0),
+        Vertex(w, h, -d, r, g, b, 0.0, 0.0, -1.0),
+        Vertex(-w, h, -d, r, g, b, 0.0, 0.0, -1.0),
+
+        Vertex(w, -h, d, r, g, b, 1.0, 0.0, 0.0),
+        Vertex(w, -h, -d, r, g, b, 1.0, 0.0, 0.0),
+        Vertex(w, h, d, r, g, b, 1.0, 0.0, 0.0),
+        Vertex(w, -h, -d, r, g, b, 1.0, 0.0, 0.0),
+        Vertex(w, h, -d, r, g, b, 1.0, 0.0, 0.0),
+        Vertex(w, h, d, r, g, b, 1.0, 0.0, 0.0),
+
+        Vertex(-w, h, d, r, g, b, 0.0, 1.0, 0.0),
+        Vertex(w, h, d, r, g, b, 0.0, 1.0, 0.0),
+        Vertex(w, h, -d, r, g, b, 0.0, 1.0, 0.0),
+        Vertex(-w, h, d, r, g, b, 0.0, 1.0, 0.0),
+        Vertex(w, h, -d, r, g, b, 0.0, 1.0, 0.0),
+        Vertex(-w, h, -d, r, g, b, 0.0, 1.0, 0.0)};
+
+    unsigned int tmp_nb_vertex = sizeof(vertex) / sizeof(vertex_t);
+    *nb_vertex = tmp_nb_vertex;
+
+    vertex_t *ans = malloc(sizeof(vertex));
+    memcpy(ans, vertex, sizeof(vertex));
+
+    return ans;
 }
 
-model_3D_p Sphere(double rayon, double __r, double __g, double __b)
+const void* init_vertex_buffer_pave_data(unsigned int *nb_vertex, double width, double height, double depth, double r, double g, double b)
 {
-    // On génère une sphère comme l'ensemble des points à une distance r du point (0, 0, 0)
+    vertex_t *vertex = init_vertex_buffer_pave(nb_vertex, width, height, depth, r, g, b);
+    return vertex->data;
+}
+
+vertex_t* init_vertex_buffer_sphere(unsigned int *nb_vertex, double rayon, double r, double g, double b)
+{
+    // On génère une sphère comme l'ensemble des points à une distance rayon du point (0, 0, 0)
     // Donc on fait 2 boucles d'angles (avec des angles en degrés)
-    const int pas = 10; // 2 <= pas <= 45
-    int nb_vertex_par_latitude = 360.0 / pas;
+    int nb_vertex_par_latitude = 360.0 / SPHERE_STEP;
 
-    const int nb_vertex = (nb_vertex_par_latitude - 2) * nb_vertex_par_latitude;
-    vertex_t *vertex_buffer = malloc(sizeof(vertex_t) * nb_vertex);
-
-    const int nb_index = (nb_vertex_par_latitude - 2) * nb_vertex_par_latitude * 6;
-    unsigned int *index_buffer = malloc(sizeof(unsigned int) * nb_index);
+    *nb_vertex = (nb_vertex_par_latitude - 2) * nb_vertex_par_latitude;
+    vertex_t *vertex_buffer = malloc(sizeof(vertex_t) * *nb_vertex);
 
     int i = 0;
     double theta_rd = 0.;
@@ -47,13 +100,13 @@ model_3D_p Sphere(double rayon, double __r, double __g, double __b)
 
     // Pôles nord et sud de la sphère
     vertex_buffer[0] = Vertex(0.0, -1.0 * rayon, 0.0, 0.5, 0.0, 0.5, 0.0, -1.0, 0.0);
-    vertex_buffer[nb_vertex - 1] = Vertex(0.0, 1.0 * rayon, 0.0, 0.5, 1.0, 0.5, 0.0, 1.0, 0.0);
+    vertex_buffer[*nb_vertex - 1] = Vertex(0.0, 1.0 * rayon, 0.0, 0.5, 1.0, 0.5, 0.0, 1.0, 0.0);
 
-    // Toutes les autres possibilités de points à une distance r du centre
-    for (int theta = -180 + pas; theta < 180 - pas; theta += pas)
+    // Toutes les autres possibilités de points à une distance rayon du centre
+    for (int theta = -180 + SPHERE_STEP; theta < 180 - SPHERE_STEP; theta += SPHERE_STEP)
     {
         theta_rd = (theta * 2.0 * PI) / 360.0;
-        for (int phi = 0; phi < 360; phi += pas)
+        for (int phi = 0; phi < 360; phi += SPHERE_STEP)
         {
             phi_rd = (phi * 2.0 * PI) / 360.0;
             // On a deux angles et un rayon : on déduit les coordonnées cartésiennes à partir des sphériques
@@ -63,15 +116,29 @@ model_3D_p Sphere(double rayon, double __r, double __g, double __b)
                 rayon * sin(phi_rd) * cos(theta_rd),
                 rayon * sin(phi_rd) * sin(theta_rd),
                 rayon * cos(phi_rd),
-                __r, __g, __b,
+                r, g, b,
                 sin(phi_rd) * cos(theta_rd),
                 sin(phi_rd) * sin(theta_rd),
                 cos(phi_rd));
             i++;
         }
     }
-    printf("i = %d, nb_vertex = %d\n", i, nb_vertex);
-    assert(i == nb_vertex);
+    return vertex_buffer;
+}
+
+const void* init_vertex_buffer_sphere_data(unsigned int *nb_vertex, double rayon, double r, double g, double b)
+{
+    vertex_t *ans = init_vertex_buffer_sphere(nb_vertex, rayon, r, g, b);
+    return ans->data;
+}
+
+unsigned int* init_index_buffer_sphere(unsigned int *nb_index)
+{
+    int nb_vertex_par_latitude = 360.0 / SPHERE_STEP;
+
+    const int nb_vertex = (nb_vertex_par_latitude - 2) * nb_vertex_par_latitude;
+    *nb_index = (nb_vertex_par_latitude - 2) * nb_vertex_par_latitude * 6;
+    unsigned int *index_buffer = malloc(sizeof(unsigned int) * *nb_index);
 
     // Reste à "trianguler" : on prend les sommets adjacents 4 par 4 et on dessine 2 triangles par rectangle
     // (Donc on veut juste remplir le index_buffer)
@@ -141,93 +208,84 @@ model_3D_p Sphere(double rayon, double __r, double __g, double __b)
     index_buffer[j++] = nb_vertex - 1;
     index_buffer[j++] = offset;
 
-    printf("j = %d, nb_index = %d\n", j, nb_index);
-    assert(j == nb_index);
-
-    return Model_3D(nb_vertex, vertex_buffer, nb_index, index_buffer, NULL);
+    return index_buffer;
 }
 
-model_3D_p Pave(double width, double height, double depth, double r, double g, double b, const char* cube_images[6])
-{
-    double w = width / 2.0;
-    double h = height / 2.0;
-    double d = depth / 2.0;
 
-    vertex_t vertex[] = {
-        // x, y, z, r, g, b, normale.x, normale.y, normale.z
-        Vertex(w, -h, d, r, g, b, 0.0, -1.0, 0.0),
-        Vertex(w, -h, -d, r, g, b, 0.0, -1.0, 0.0),
-        Vertex(-w, -h, d, r, g, b, 0.0, -1.0, 0.0),
-        Vertex(w, -h, -d, r, g, b, 0.0, -1.0, 0.0),
-        Vertex(-w, -h, -d, r, g, b, 0.0, -1.0, 0.0),
-        Vertex(-w, -h, d, r, g, b, 0.0, -1.0, 0.0),
+// _______________________________________Model_3D____________________________________
 
-        Vertex(-w, h, d, r, g, b, -1.0, 0.0, 0.0),
-        Vertex(-w, -h, d, r, g, b, -1.0, 0.0, 0.0),
-        Vertex(-w, -h, -d, r, g, b, -1.0, 0.0, 0.0),
-        Vertex(-w, h, d, r, g, b, -1.0, 0.0, 0.0),
-        Vertex(-w, -h, -d, r, g, b, -1.0, 0.0, 0.0),
-        Vertex(-w, h, -d, r, g, b, -1.0, 0.0, 0.0),
+// Crise existentielle sur l'intérêt de cette structure
+// à corriger ASAP
 
-        Vertex(-w, -h, d, r, g, b, 0.0, 0.0, 1.0),
-        Vertex(w, -h, d, r, g, b, 0.0, 0.0, 1.0),
-        Vertex(w, h, d, r, g, b, 0.0, 0.0, 1.0),
-        Vertex(-w, -h, d, r, g, b, 0.0, 0.0, 1.0),
-        Vertex(w, h, d, r, g, b, 0.0, 0.0, 1.0),
-        Vertex(-w, h, d, r, g, b, 0.0, 0.0, 1.0),
+// model_3D_t Model_3D(unsigned int __nb_vertex, vertex_t *__vertex_buffer, unsigned int __nb_index, unsigned int *__index_buffer, const char* cube_images[6])
+// {
+//     model_3D_t this = malloc(sizeof(model_3D_t));
 
-        Vertex(-w, -h, -d, r, g, b, 0.0, 0.0, -1.0),
-        Vertex(w, -h, -d, r, g, b, 0.0, 0.0, -1.0),
-        Vertex(w, h, -d, r, g, b, 0.0, 0.0, -1.0),
-        Vertex(-w, -h, -d, r, g, b, 0.0, 0.0, -1.0),
-        Vertex(w, h, -d, r, g, b, 0.0, 0.0, -1.0),
-        Vertex(-w, h, -d, r, g, b, 0.0, 0.0, -1.0),
+//     this->nb_vertex = __nb_vertex;
+//     this->vertex_buffer = __vertex_buffer;
+//     this->nb_index = __nb_index;
+//     this->index_buffer = __index_buffer;
 
-        Vertex(w, -h, d, r, g, b, 1.0, 0.0, 0.0),
-        Vertex(w, -h, -d, r, g, b, 1.0, 0.0, 0.0),
-        Vertex(w, h, d, r, g, b, 1.0, 0.0, 0.0),
-        Vertex(w, -h, -d, r, g, b, 1.0, 0.0, 0.0),
-        Vertex(w, h, -d, r, g, b, 1.0, 0.0, 0.0),
-        Vertex(w, h, d, r, g, b, 1.0, 0.0, 0.0),
+//     if(cube_images == NULL) this->cubemap_id = NO_TEXTURE;
+//     else this->cubemap_id = init_cubemap(cube_images);
 
-        Vertex(-w, h, d, r, g, b, 0.0, 1.0, 0.0),
-        Vertex(w, h, d, r, g, b, 0.0, 1.0, 0.0),
-        Vertex(w, h, -d, r, g, b, 0.0, 1.0, 0.0),
-        Vertex(-w, h, d, r, g, b, 0.0, 1.0, 0.0),
-        Vertex(w, h, -d, r, g, b, 0.0, 1.0, 0.0),
-        Vertex(-w, h, -d, r, g, b, 0.0, 1.0, 0.0)};
+//     return this;
+// }
 
-    int nb_vertex = sizeof(vertex) / sizeof(vertex_t);
+// model_3D_t Sphere(double rayon, double __r, double __g, double __b)
+// {
+//     unsigned int nb_vertex;
+//     vertex_t *vertex_buffer = init_vertex_buffer_sphere(&nb_vertex, rayon, r, g, b);
 
-    vertex_t *vertex2 = malloc(sizeof(vertex));
-    memcpy(vertex2, vertex, sizeof(vertex));
+//     unsigned int nb_index;
+//     unsigned int *index_buffer = init_index_buffer_sphere(&nb_index, rayon, r, g, b);
 
-    return Model_3D(nb_vertex, vertex2, 0, NULL, cube_images);
-}
+//     return Model_3D(nb_vertex, vertex_buffer, nb_index, index_buffer, NULL);
+// }
 
-model_3D_p Cube(double c, double r, double g, double b, const char* cube_images[6])
-{
-    return Pave(c, c, c, r, g, b, cube_images);
-}
+// model_3D_t Pave(double width, double height, double depth, double r, double g, double b, const char* cube_images[6])
+// {
+//     unsigned int nb_vertex;
+//     vertex_t* vertex = init_vertex_buffer_pave(&nb_vertex, width, height, depth, r, g, b);
+    
+//     return Model_3D(nb_vertex, vertex, 0, NULL, cube_images);
+// }
 
-void model_3D_draw(model_3D_p this, materiau_t materiau, unsigned int program_index)
+// model_3D_t Cube(double c, double r, double g, double b, const char* cube_images[6])
+// {
+//     return Pave(c, c, c, r, g, b, cube_images);
+// }
+
+void model_3D_draw(model_3D_t this, materiau_t materiau, unsigned int program_index)
 {
     // D'abord on set le program qui sera utilisé pour le rendu de cet objet
     const unsigned int program = PROGRAM_ID[program_index];
     glUseProgram(program);
-    // printf("prog : %d\n", program);
 
-    if(this->cubemap_id != NO_TEXTURE)
+    if(this.cubemap_id != NO_TEXTURE)
     {
         // On set la texture de this comme texture active
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, this->cubemap_id);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, this.cubemap_id);
         unsigned int u_Cubemap = glGetUniformLocation(program, "u_Cubemap");
         glUniform1i(u_Cubemap, 0);
 
-        // Clean
+        // Clean ?
         // glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
     }
+
+    glBindBuffer(GL_ARRAY_BUFFER, VERTEX_BUFFER_ID[this.model_id]);
+    
+    // Puis on lui dit comment interpréter ces données
+    // Position
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, NB_ATTRIBUTES_VERTEX * sizeof(float), 0);
+    // Couleur
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, NB_ATTRIBUTES_VERTEX * sizeof(float), (void *)(3 * sizeof(float)));
+    // Normales
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, NB_ATTRIBUTES_VERTEX * sizeof(float), (void*)(6 * sizeof(float)));
 
 
     // On set la constante du materiau de l'objet pour le rendu
@@ -240,34 +298,17 @@ void model_3D_draw(model_3D_p this, materiau_t materiau, unsigned int program_in
     int u_shininess = glGetUniformLocation(program, "u_Material.shininess");
     glUniform1f(u_shininess, materiau.shininess);
 
-    // Vertex buffer, on envoie à OpenGL les données du triangle
-    unsigned int vertex_buf_id;
-    glGenBuffers(1, &vertex_buf_id);
-    glBindBuffer(GL_ARRAY_BUFFER, vertex_buf_id);
-    glBufferData(GL_ARRAY_BUFFER, 2 * this->nb_vertex * NB_ATTRIBUTES_VERTEX * sizeof(float), this->vertex_buffer->data, GL_DYNAMIC_DRAW); // a revoir
-
-    // Puis on lui dit comment interpréter ces données
-    // Position
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, NB_ATTRIBUTES_VERTEX * sizeof(float), 0);
-    // Couleur
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, NB_ATTRIBUTES_VERTEX * sizeof(float), (void *)(3 * sizeof(float)));
-    // Normales
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, NB_ATTRIBUTES_VERTEX * sizeof(float), (void*)(6 * sizeof(float)));
-
-    if(this->nb_index > 0)
+    
+    if(NB_INDEX_PER_BUFFER[this.model_id] > 0)
     {
         // Bind et interprétation du index_buffer
-        unsigned int index_buf_id;
-        glGenBuffers(1, &index_buf_id);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buf_id);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->nb_index * sizeof(unsigned int), this->index_buffer, GL_DYNAMIC_DRAW);
-        glDrawElements(GL_TRIANGLES, this->nb_index, GL_UNSIGNED_INT, NULL);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, INDEX_BUFFER_ID[this.model_id]);
+        glDrawElements(GL_TRIANGLES, NB_INDEX_PER_BUFFER[this.model_id], GL_UNSIGNED_INT, NULL);
+        // unbind buffer ?
     }
     else
     {
-        glDrawArrays(GL_TRIANGLES, 0, this->nb_vertex);
+        glDrawArrays(GL_TRIANGLES, 0, NB_VERTEX_PER_BUFFER[this.model_id]);
     }
 }
+

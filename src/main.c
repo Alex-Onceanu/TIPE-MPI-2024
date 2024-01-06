@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <GLES2/gl2.h>
+#include <GLES3/gl3.h>
 #include <emscripten/html5.h>
 
 #include "modelisation/init.h"
@@ -11,8 +11,16 @@
 #include "world.h"
 #include "user_event.h"
 
-// Cette "constante" globale stockera les ID OPENGL representant les deux "programmes" (= vertex shader + fragment shader)
-unsigned int PROGRAM_ID[NB_PROGRAMS] = {0, 0};
+// Ce tableau global stockera les ID OPENGL representant les deux "programmes" (= vertex shader + fragment shader)
+unsigned int PROGRAM_ID[NB_PROGRAMS] = { 0 };
+
+// Ces tableaux globaux stockeront des ID OPENGL représentant des vertex buffer et index buffer préchargés
+// Ainsi il suffit de charger les buffers d'une sphère une seule fois au début, puis seulement les bind à chaque draw call
+// Ces tableaux sont remplis au moment de l'appel de init_buffers() (voir fichier init.h) 
+unsigned int NB_VERTEX_PER_BUFFER[NB_BUFFERS] = { 0 };
+unsigned int VERTEX_BUFFER_ID[NB_BUFFERS] = { 0 };
+unsigned int NB_INDEX_PER_BUFFER[NB_BUFFERS] = { 0 };
+unsigned int INDEX_BUFFER_ID[NB_BUFFERS] = { 0 };
 
 // Affiche les erreurs de shader et OpenGL
 void debug()
@@ -54,9 +62,9 @@ EM_BOOL mainloop(double time, void *userData)
     world_update(world);
 
     // Clear
-    // glClearColor(0.278, 0.592, 0.792, 1.0);
-    glClearColor(0.0, 0.0, 0.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(0.278, 0.592, 0.792, 1.0);
+    // glClearColor(0.0, 0.0, 0.0, 1.0);
+    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Draw
     world_draw(world);
@@ -64,6 +72,7 @@ EM_BOOL mainloop(double time, void *userData)
     // debug();
     return EM_TRUE;
 }
+
 
 int main()
 {
@@ -76,7 +85,6 @@ int main()
     // Éviter le Z-fighting
     glDepthFunc(GL_LEQUAL);
 
-    printf("a\n");
     for (int i = 0; i < NB_PROGRAMS; i++)
     {
         glUseProgram(PROGRAM_ID[i]);
@@ -90,7 +98,6 @@ int main()
         int u_Proj = glGetUniformLocation(PROGRAM_ID[i], "u_Proj");
         glUniformMatrix4fv(u_Proj, 1, GL_FALSE, proj.coefs);
     }
-    printf("b\n");
 
     // Instanciation de world (instance principale)
     // Sera parametre de mainloop sous forme de void*

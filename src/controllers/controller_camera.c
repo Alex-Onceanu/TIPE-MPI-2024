@@ -7,7 +7,7 @@
 #include "../tools/constantes.h"
 #include "../user_event.h"
 #include "../tools/vector.h"
-#include <GLES2/gl2.h>
+#include <GLES3/gl3.h>
 
 void controller_camera_process_input(controller_p this, void *data)
 {
