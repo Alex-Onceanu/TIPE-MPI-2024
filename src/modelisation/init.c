@@ -196,7 +196,7 @@ void init()
     char* shader_paths[NB_PROGRAMS][2] = {  {"../res/shaders/color.vert","../res/shaders/color.frag" },
                                             { "../res/shaders/texture.vert","../res/shaders/texture.frag" },
                                             { "../res/shaders/skybox.vert","../res/shaders/skybox.frag" },
-                                            { "../res/shaders/color.vert","../res/shaders/color.frag" } };
+                                            { "../res/shaders/checkerboard.vert","../res/shaders/checkerboard.frag" } };
 
     for(int program_it = 0; program_it < NB_PROGRAMS; program_it++)
     {

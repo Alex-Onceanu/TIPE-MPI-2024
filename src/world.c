@@ -63,7 +63,7 @@ world_p world_init()
 
     {
         // Le sol est un pavé
-        entity_p sol = Entity(COLOR_PROGRAM);
+        entity_p sol = Entity(CHECKERBOARD_PROGRAM);
         controller_kinematics_p c1 = Controller_kinematics(1000000.0, Force3(0.0, -2.0, 0.0), Force3(0.0, 0.0, 0.0), NULL);
 
         // model_3D_p pav3d = Pave(600.0, 2.0, 600.0, 0.44, 0.401, 0.3313, NULL);

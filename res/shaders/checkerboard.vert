@@ -10,11 +10,10 @@ uniform mat4 u_Proj;
 varying vec3 v_Color;
 varying vec3 v_Normal;
 varying vec3 v_FragPos;
-varying vec3 v_TexCoords;
 
 void main() {
-    v_TexCoords = a_Position;
-    vec4 pos = vec4(a_Position, 1.0) * mat4(mat3(u_View)) * u_Proj;
-    gl_Position = pos.xyww;
-    v_FragPos = a_Position;
+    gl_Position = vec4(a_Position, 1.0) * (u_Rotation * u_Translation) * u_View * u_Proj;
+    v_Color = a_Color;
+    v_Normal = vec3(vec4(a_Normal, 1.0) * (-u_Rotation));
+    v_FragPos = vec3(vec4(a_Position, 1.0) * (u_Rotation * u_Translation));
 }

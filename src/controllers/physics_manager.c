@@ -156,7 +156,7 @@ void physics_manager_update(controller_p this2)
             tmp_controller_2 = (controller_kinematics_p)vector_get_at(this->kinematic_controllers, j);
             if (collision(tmp_controller, tmp_controller_2))
             {
-                // printf("Collision !\n");
+                // printf("Collision ! m1 = %f, m2 = %f\nv10 = %f %f %f, v20 = %f %f %f\n", tmp_controller->mass, tmp_controller_2->mass, tmp_controller->speed.fx, tmp_controller->speed.fy, tmp_controller->speed.fz, tmp_controller_2->speed.fx, tmp_controller_2->speed.fy, tmp_controller_2->speed.fz);
                 // Avant de calculer la force à appliquer, il faut "téléporter" les boules de sorte à ce qu'elles ne s'intersectent pas grossièrement
                 // teleport_and_update_speed(tmp_controller, tmp_controller_2);
 
@@ -166,15 +166,15 @@ void physics_manager_update(controller_p this2)
                 impact_coef_1 = ABS(DOT_PRODUCT(impact_direction, tmp_controller->speed));
                 impact_coef_2 = ABS(DOT_PRODUCT(impact_direction, tmp_controller_2->speed));
 
-                impact_coef = (impact_coef_1 + impact_coef_2) * tmp_controller->mass / (tmp_controller->mass + tmp_controller_2->mass);
+                // Faux, refaire les collisions inélastiques
+                impact_coef = (1.0 - COLLISION_ENERGY_LOSS) * 0.5 * (impact_coef_1 + impact_coef_2) * tmp_controller->mass / (tmp_controller->mass + tmp_controller_2->mass);
 
                 tmp_fx = impact_coef * impact_direction.fx * tmp_controller->mass / dt;
                 tmp_fy = impact_coef * impact_direction.fy * tmp_controller->mass / dt;
                 tmp_fz = impact_coef * impact_direction.fz * tmp_controller->mass / dt;
 
                 controller_kinematics_add_force(tmp_controller, Force3(tmp_fx, tmp_fy, tmp_fz));
-                printf("Coef de masses : %f\n", (tmp_controller_2->mass / (tmp_controller->mass + tmp_controller_2->mass)));
-                impact_coef = (impact_coef_1 + impact_coef_2) * tmp_controller_2->mass / (tmp_controller->mass + tmp_controller_2->mass);
+                impact_coef *= tmp_controller_2->mass / tmp_controller->mass;
 
                 tmp_fx = -impact_coef * impact_direction.fx * tmp_controller_2->mass / dt;
                 tmp_fy = -impact_coef * impact_direction.fy * tmp_controller_2->mass / dt;
