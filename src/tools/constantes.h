@@ -3,15 +3,17 @@
 
 #define FPS 60
 
+extern double dt;
+
 // __________________________________Rendu 3D_____________________________________________
 
 // Index des identifiants opengl des "programmes" (= 2 shaders) stockés dans PROGRAM_ID
 #define NB_PROGRAMS 4
-#define NO_PROGRAM -1               // Certaines entités n'ont pas de programme associé
-#define COLOR_PROGRAM 0             // Rendu d'objets de couleur unie
-#define TEXTURE_PROGRAM 1           // Rendu avec une texture
-#define SKYBOX_PROGRAM 2            // Rendu du ciel
-#define CHECKERBOARD_PROGRAM 3      // Rendu du sol en damier
+#define NO_PROGRAM -1          // Certaines entités n'ont pas de programme associé
+#define COLOR_PROGRAM 0        // Rendu d'objets de couleur unie
+#define TEXTURE_PROGRAM 1      // Rendu avec une texture
+#define SKYBOX_PROGRAM 2       // Rendu du ciel
+#define CHECKERBOARD_PROGRAM 3 // Rendu du sol en damier
 
 // Les constantes ci-dessus sont des indices de PROGRAM_ID
 extern unsigned int PROGRAM_ID[NB_PROGRAMS];
@@ -24,14 +26,14 @@ extern unsigned int PROGRAM_ID[NB_PROGRAMS];
 
 #define NB_BUFFERS 4
 
-// Index des identifiants opengl des vertex/index buffer 
+// Index des identifiants opengl des vertex/index buffer
 // Ils sont générés au lancement puis à chaque draw call on choisit quels buffers on veut bind
 typedef enum MODEL_TYPE
 {
-    CUBE_TEST_BUF,              // Un certain cube, pour tester..
-    SPHERE_BIG_BUF,             // Boule de pétanque
-    SPHERE_SMALL_BUF,           // Cochonnet
-    GROUND_BUF                  // Sol
+    CUBE_TEST_BUF,    // Un certain cube, pour tester..
+    SPHERE_BIG_BUF,   // Boule de pétanque
+    SPHERE_SMALL_BUF, // Cochonnet
+    GROUND_BUF        // Sol
 } MODEL_TYPE_t;
 
 // L'avantage, quand on code en C, c'est qu'un enum peut être trivialement converti en unsigned int
@@ -40,7 +42,6 @@ extern unsigned int NB_VERTEX_PER_BUFFER[NB_BUFFERS];
 extern unsigned int VERTEX_BUFFER_ID[NB_BUFFERS];
 extern unsigned int NB_INDEX_PER_BUFFER[NB_BUFFERS];
 extern unsigned int INDEX_BUFFER_ID[NB_BUFFERS];
-
 
 // __________________________________________Monde_______________________________________
 

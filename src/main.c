@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 
 #include <GLES3/gl3.h>
 #include <emscripten/html5.h>
@@ -12,15 +13,15 @@
 #include "user_event.h"
 
 // Ce tableau global stockera les ID OPENGL representant les deux "programmes" (= vertex shader + fragment shader)
-unsigned int PROGRAM_ID[NB_PROGRAMS] = { 0 };
+unsigned int PROGRAM_ID[NB_PROGRAMS] = {0};
 
 // Ces tableaux globaux stockeront des ID OPENGL représentant des vertex buffer et index buffer préchargés
 // Ainsi il suffit de charger les buffers d'une sphère une seule fois au début, puis seulement les bind à chaque draw call
-// Ces tableaux sont remplis au moment de l'appel de init_buffers() (voir fichier init.h) 
-unsigned int NB_VERTEX_PER_BUFFER[NB_BUFFERS] = { 0 };
-unsigned int VERTEX_BUFFER_ID[NB_BUFFERS] = { 0 };
-unsigned int NB_INDEX_PER_BUFFER[NB_BUFFERS] = { 0 };
-unsigned int INDEX_BUFFER_ID[NB_BUFFERS] = { 0 };
+// Ces tableaux sont remplis au moment de l'appel de init_buffers() (voir fichier init.h)
+unsigned int NB_VERTEX_PER_BUFFER[NB_BUFFERS] = {0};
+unsigned int VERTEX_BUFFER_ID[NB_BUFFERS] = {0};
+unsigned int NB_INDEX_PER_BUFFER[NB_BUFFERS] = {0};
+unsigned int INDEX_BUFFER_ID[NB_BUFFERS] = {0};
 
 // Affiche les erreurs de shader et OpenGL
 void debug()
@@ -73,9 +74,9 @@ EM_BOOL mainloop(double time, void *userData)
     return EM_TRUE;
 }
 
-
 int main()
 {
+    srand(time(NULL));
     // init s'occupe de toutes les initialisations uniques nécessaires
     init();
     // init_texture s'occupe des initialisations liees aux textures...

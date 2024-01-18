@@ -115,7 +115,7 @@ void controller_camera_update(controller_p this)
     double time_between_frames = current_time - this2->old_time;
     double target_time = 1.0 / FPS;
     this2->old_time = current_time;
-    double dt = 1.0;
+    // double dt = 1.0;
     if (time_between_frames > target_time)
     {
         dt = time_between_frames / target_time;
@@ -126,7 +126,7 @@ void controller_camera_update(controller_p this)
     float dvz = this2->v_z * cos(this2->theta_x) - this2->v_x * sin(-this2->theta_x);
 
     this2->direction_x = sin(this2->theta_x) * cos(this2->theta_y);
-    this2->direction_y = sin(this2->theta_x) * sin(this2->theta_y);
+    this2->direction_y = sin(this2->theta_y);
     this2->direction_z = -cos(this2->theta_x);
 
     this2->x += dvx * dt;
@@ -148,6 +148,8 @@ void controller_camera_update(controller_p this)
     this2->theta_y += 0.2 * PI * (this2->mouse_y - this2->old_mouse_y) * dt;
 
     Clamp(&(this2->theta_y), -PI / 2.0, PI / 2.0);
+
+    printf("Theta_x : %f, theta_y : %f\n", this2->theta_x, this2->theta_y);
 }
 
 void controller_camera_draw(controller_p this)

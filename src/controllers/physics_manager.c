@@ -93,6 +93,8 @@ void physics_manager_update(controller_p this2)
     {
         dt = time_between_frames * FPS;
     }
+    // dt = dt > 0 ? -dt : dt;
+    printf("dt = %f\n", dt);
 
     physics_manager_p this = (physics_manager_p)this2;
     int nb_controllers = vector_len(this->kinematic_controllers);
