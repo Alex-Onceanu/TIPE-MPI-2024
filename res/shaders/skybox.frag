@@ -20,13 +20,11 @@ varying vec3 v_TexCoords;
 
 void main() {
     // L'image est chargée sous format GBR et non pas RGB
-    // gl_FragColor = textureCube(u_Cubemap, v_TexCoords).yzxw;
+    gl_FragColor = textureCube(u_Cubemap, v_TexCoords).yzxw;
     
-    vec3 uv = 2.0 * v_FragPos;
+    // vec3 uv = 2.0 * v_FragPos;
 
-    vec3 col = (1.0 - uv.y) * vec3(1.0, 1.0, 1.0) + uv.y * vec3(0.0, 0.749, 1.0);
+    // vec3 col = (1.0 - uv.y) * vec3(1.0, 1.0, 1.0) + uv.y * vec3(0.0, 0.749, 1.0);
 
-    // vec3 col = vec3(0.0, cx, cz);
-
-    gl_FragColor = vec4(col, 1.0);
+    // gl_FragColor = vec4(col, 1.0);
 }

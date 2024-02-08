@@ -62,7 +62,7 @@ extern unsigned int INDEX_BUFFER_ID[NB_BUFFERS];
 #define GRAVITY 0.03
 #define FLUID_MU 0.01
 #define SOLID_STATIC_MU 0.08
-#define SOLID_DYNAMIC_MU 0.3
+#define SOLID_DYNAMIC_MU 0.13
 #define COLLISION_ENERGY_LOSS 0.0
 
 #endif

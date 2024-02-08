@@ -85,6 +85,7 @@ int main()
     glEnable(GL_DEPTH_TEST);
     // Éviter le Z-fighting
     glDepthFunc(GL_LEQUAL);
+    // Pour la transparence
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

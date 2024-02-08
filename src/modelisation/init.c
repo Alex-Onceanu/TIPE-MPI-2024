@@ -174,7 +174,7 @@ unsigned int init_cubemap(const char *paths[6])
         }
         else
         {
-            printf("l'image a pu être chargée : yooopi !\n");
+            // printf("l'image a pu être chargée : yooopi !\n");
             // On set des informations et l'image-même de la face GL_TEXTURE_CUBE_MAP_POSITIVE_X + i
             // (c'est un sous-enum de GL_TEXTURE_CUBE_MAP représentant la i-ième face)
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);

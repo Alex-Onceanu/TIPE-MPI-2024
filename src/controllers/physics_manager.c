@@ -83,72 +83,9 @@ void teleport_and_update_speed(controller_kinematics_p tmp_controller_1, control
     printf("\n");
 }
 
-// C'est dans cet update que physics_manager va faire subir des forces aux controlleurs qu'il gère
-void physics_manager_update(controller_p this2)
+void physics_manager_update_collisions(physics_manager_p this, int nb_controllers)
 {
-    double current_time = (double)clock() / (double)CLOCKS_PER_SEC;
-    double time_between_frames = current_time - old_time;
-    old_time = current_time;
-    if (time_between_frames > TARGET_TIME)
-    {
-        dt = time_between_frames * FPS;
-    }
-    dt = dt > 60.0 ? 1.0 : dt;
-    printf("dt = %f\n", dt);
-
-    physics_manager_p this = (physics_manager_p)this2;
-    int nb_controllers = vector_len(this->kinematic_controllers);
     controller_kinematics_p tmp_controller = NULL;
-    float tmp_fx = 0.0;
-    float tmp_fy = 0.0;
-    float tmp_fz = 0.0;
-
-    for (int i = 0; i < nb_controllers; i++)
-    {
-        // printf("i = %d\n", i);
-        // Poids et frottements fluides : ces forces s'appliquent à tout le monde
-        tmp_controller = (controller_kinematics_p)vector_get_at(this->kinematic_controllers, i);
-
-        // Réaction du support : si pos.fy < 0 on ajoute une force valant -1.5 * speed.fy (effet de rebond)
-        // !! ne pas oublier d'implémenter les frottements solides !!
-        if (tmp_controller->pos.fy <= 0.0)
-        {
-            tmp_controller->pos.fy = 0.0;
-            if (ABS(tmp_controller->speed.fy) > 0.1) // Pas de frottements solides dynamiques si la vitesse est trop faible (~ frottements statiques)
-            {
-                // tmp_fx = (tmp_controller->speed.fx > 0.0 ? -1.0 : 1.0) * SOLID_DYNAMIC_MU * tmp_controller->mass * GRAVITY;
-                tmp_fx = -tmp_controller->speed.fx * FLUID_MU;
-                tmp_fy = -tmp_controller->mass * tmp_controller->speed.fy * 1.3 / dt;
-                tmp_fz = -tmp_controller->speed.fz * FLUID_MU;
-                // tmp_fz = (tmp_controller->speed.fz > 0.0 ? -1.0 : 1.0) * SOLID_DYNAMIC_MU * tmp_controller->mass * GRAVITY;
-
-                controller_kinematics_add_force(tmp_controller, Force3(tmp_fx, tmp_fy, tmp_fz));
-            }
-
-            tmp_fx = -tmp_controller->speed.fx * 2.0 * FLUID_MU;
-            tmp_fy = -tmp_controller->speed.fy * 2.0 * FLUID_MU;
-            tmp_fz = -tmp_controller->speed.fz * 2.0 * FLUID_MU;
-
-            controller_kinematics_add_force(tmp_controller, Force3(tmp_fx, tmp_fy, tmp_fz));
-        }
-        else
-        {
-            // On applique le poids uniquement si l'objet est au-dessus du sol
-            tmp_fx = 0.0;
-            tmp_fy = -tmp_controller->mass * GRAVITY;
-            tmp_fz = 0.0;
-
-            controller_kinematics_add_force(tmp_controller, Force3(tmp_fx, tmp_fy, tmp_fz));
-
-            tmp_fx = -tmp_controller->speed.fx * FLUID_MU;
-            tmp_fy = -tmp_controller->speed.fy * FLUID_MU;
-            tmp_fz = -tmp_controller->speed.fz * FLUID_MU;
-
-            controller_kinematics_add_force(tmp_controller, Force3(tmp_fx, tmp_fy, tmp_fz));
-        }
-    }
-
-    // On gère les collisions
     force3_t impact_direction = {};
     float impact_coef = 0.0;
     float impact_coef_1 = 0.0;
@@ -175,21 +112,75 @@ void physics_manager_update(controller_p this2)
                 // Faux, refaire les collisions inélastiques
                 impact_coef = (1.0 - COLLISION_ENERGY_LOSS) * 0.5 * (impact_coef_1 + impact_coef_2) * tmp_controller->mass / (tmp_controller->mass + tmp_controller_2->mass);
 
-                tmp_fx = impact_coef * impact_direction.fx * tmp_controller->mass / dt;
-                tmp_fy = impact_coef * impact_direction.fy * tmp_controller->mass / dt;
-                tmp_fz = impact_coef * impact_direction.fz * tmp_controller->mass / dt;
+                controller_kinematics_add_force(tmp_controller, Force3(impact_coef * impact_direction.fx * tmp_controller->mass / dt,
+                                                                       impact_coef * impact_direction.fy * tmp_controller->mass / dt,
+                                                                       impact_coef * impact_direction.fz * tmp_controller->mass / dt));
 
-                controller_kinematics_add_force(tmp_controller, Force3(tmp_fx, tmp_fy, tmp_fz));
                 impact_coef *= tmp_controller_2->mass / tmp_controller->mass;
 
-                tmp_fx = -impact_coef * impact_direction.fx * tmp_controller_2->mass / dt;
-                tmp_fy = -impact_coef * impact_direction.fy * tmp_controller_2->mass / dt;
-                tmp_fz = -impact_coef * impact_direction.fz * tmp_controller_2->mass / dt;
-
-                controller_kinematics_add_force(tmp_controller_2, Force3(tmp_fx, tmp_fy, tmp_fz));
+                controller_kinematics_add_force(tmp_controller_2, Force3(-impact_coef * impact_direction.fx * tmp_controller_2->mass / dt,
+                                                                         -impact_coef * impact_direction.fy * tmp_controller_2->mass / dt,
+                                                                         -impact_coef * impact_direction.fz * tmp_controller_2->mass / dt));
             }
         }
     }
+}
+
+// C'est dans cet update que physics_manager va faire subir des forces aux controlleurs qu'il gère
+void physics_manager_update(controller_p this2)
+{
+    double current_time = (double)clock() / (double)CLOCKS_PER_SEC;
+    double time_between_frames = current_time - old_time;
+    old_time = current_time;
+    if (time_between_frames > TARGET_TIME)
+    {
+        dt = time_between_frames * FPS;
+    }
+    dt = dt > 60.0 ? 1.0 : dt;
+
+    physics_manager_p this = (physics_manager_p)this2;
+    int nb_controllers = vector_len(this->kinematic_controllers);
+    controller_kinematics_p tmp_controller = NULL;
+    const float boing_coef = 1.3;
+    // Vaut 1 si vx > 0, -1 sinon (idem pour z)
+    float speed_direction_x = 1.0;
+    float speed_direction_z = 1.0;
+
+    for (int i = 0; i < nb_controllers; i++)
+    {
+        tmp_controller = (controller_kinematics_p)vector_get_at(this->kinematic_controllers, i);
+
+        // Frottements fluides
+        controller_kinematics_add_force(tmp_controller, Force3(-tmp_controller->speed.fx * FLUID_MU,
+                                                               -tmp_controller->speed.fy * FLUID_MU,
+                                                               -tmp_controller->speed.fz * FLUID_MU));
+
+        if (tmp_controller->pos.fy <= 0.0)
+        {
+            tmp_controller->pos.fy = 0.0;
+            if (ABS(tmp_controller->speed.fy) > 0.1)
+            {
+                // Frottements solides : opposés au mouvement et de norme µ * m * g
+                speed_direction_x = tmp_controller->speed.fx >= 0.0 ? 1.0 : -1.0;
+                speed_direction_z = tmp_controller->speed.fz >= 0.0 ? 1.0 : -1.0;
+
+                // Rebond sur le sol (réaction du support)
+                controller_kinematics_add_force(tmp_controller, Force3(-speed_direction_x * tmp_controller->mass * GRAVITY * SOLID_DYNAMIC_MU,
+                                                                       -tmp_controller->mass * tmp_controller->speed.fy * boing_coef / dt,
+                                                                       -speed_direction_z * tmp_controller->mass * GRAVITY * SOLID_DYNAMIC_MU));
+            }
+        }
+        else
+        {
+            // On applique le poids uniquement si l'objet est au-dessus du sol
+            controller_kinematics_add_force(tmp_controller, Force3(0.0,
+                                                                   -tmp_controller->mass * GRAVITY,
+                                                                   0.0));
+        }
+    }
+
+    // On gère les collisions
+    physics_manager_update_collisions(this, nb_controllers);
 }
 
 physics_manager_p Physics_manager()

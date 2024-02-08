@@ -149,7 +149,7 @@ void controller_camera_update(controller_p this)
 
     Clamp(&(this2->theta_y), -PI / 2.0, PI / 2.0);
 
-    printf("Theta_x : %f, theta_y : %f\n", this2->theta_x, this2->theta_y);
+    // printf("Theta_x : %f, theta_y : %f\n", this2->theta_x, this2->theta_y);
 }
 
 void controller_camera_draw(controller_p this)

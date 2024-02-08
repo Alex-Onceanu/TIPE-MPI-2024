@@ -116,9 +116,9 @@ void lance_boule(world_p this)
     // masse réelle d'une boule de petanque : 0,730 kg
     // const float mass = 0.5 + (rand() % 10) / 5.0;
     const float mass = 0.73;
-    const float v0 = 1.3;
+    const float v0 = 1.3 / dt;
 
-    printf("mass = %f\n", mass);
+    // printf("mass = %f\n", mass);
 
     controller_kinematics_p ck = Controller_kinematics(mass,
                                                        Force3(this->camera->x + this->camera->direction_x * 10.0,
@@ -127,21 +127,11 @@ void lance_boule(world_p this)
                                                        Force3(0.0, 0.0, 0.0),
                                                        this->manager);
 
-    printf("direction : %f, %f, %f\n", this->camera->direction_x, this->camera->direction_y, this->camera->direction_z);
+    // printf("direction : %f, %f, %f\n", this->camera->direction_x, this->camera->direction_y, this->camera->direction_z);
 
     controller_kinematics_add_force(ck, Force3(this->camera->direction_x * v0 * mass,
                                                this->camera->direction_y * v0 * mass,
                                                this->camera->direction_z * v0 * mass));
-
-    // controller_kinematics_p ck = Controller_kinematics(mass,
-    //                                 0.0,
-    //                                 6.0,
-    //                                 -35.0,
-    //                                 0.0, 0.0, 0.0, this->manager);
-
-    // controller_kinematics_add_force(ck, Force3 (0.15,
-    //                                             0.5,
-    //                                             0.2 ));
 
     // model_3D_p model = Sphere(1.0, 0.3, 0.3, 0.3);
     model_3D_t model = {SPHERE_BIG_BUF, NO_TEXTURE};
