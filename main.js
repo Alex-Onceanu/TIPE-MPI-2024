@@ -193,7 +193,7 @@ Module['FS_createPath']("/res/textures", "sky", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/res/shaders/checkerboard.frag", "start": 0, "end": 1267}, {"filename": "/res/shaders/checkerboard.vert", "start": 1267, "end": 1773}, {"filename": "/res/shaders/color.frag", "start": 1773, "end": 2758}, {"filename": "/res/shaders/color.vert", "start": 2758, "end": 3264}, {"filename": "/res/shaders/skybox.frag", "start": 3264, "end": 3925}, {"filename": "/res/shaders/skybox.vert", "start": 3925, "end": 4363}, {"filename": "/res/shaders/texture.frag", "start": 4363, "end": 5497}, {"filename": "/res/shaders/texture.vert", "start": 5497, "end": 6064}, {"filename": "/res/textures/sky/1.ppm", "start": 6064, "end": 3151809}, {"filename": "/res/textures/sky/2.ppm", "start": 3151809, "end": 6297554}, {"filename": "/res/textures/sky/3.ppm", "start": 6297554, "end": 9443299}, {"filename": "/res/textures/sky/4.ppm", "start": 9443299, "end": 12589044}, {"filename": "/res/textures/sky/5.ppm", "start": 12589044, "end": 15734789}, {"filename": "/res/textures/sky/6.ppm", "start": 15734789, "end": 18880534}], "remote_package_size": 18880534});
+    loadPackage({"files": [{"filename": "/res/shaders/checkerboard.frag", "start": 0, "end": 1267}, {"filename": "/res/shaders/checkerboard.vert", "start": 1267, "end": 1773}, {"filename": "/res/shaders/color.frag", "start": 1773, "end": 2758}, {"filename": "/res/shaders/color.vert", "start": 2758, "end": 3264}, {"filename": "/res/shaders/shadow.frag", "start": 3264, "end": 4432}, {"filename": "/res/shaders/shadow.vert", "start": 4432, "end": 6498}, {"filename": "/res/shaders/skybox.frag", "start": 6498, "end": 7159}, {"filename": "/res/shaders/skybox.vert", "start": 7159, "end": 7597}, {"filename": "/res/shaders/texture.frag", "start": 7597, "end": 8731}, {"filename": "/res/shaders/texture.vert", "start": 8731, "end": 9298}, {"filename": "/res/textures/sky/1.ppm", "start": 9298, "end": 3155043}, {"filename": "/res/textures/sky/2.ppm", "start": 3155043, "end": 6300788}, {"filename": "/res/textures/sky/3.ppm", "start": 6300788, "end": 9446533}, {"filename": "/res/textures/sky/4.ppm", "start": 9446533, "end": 12592278}, {"filename": "/res/textures/sky/5.ppm", "start": 12592278, "end": 15738023}, {"filename": "/res/textures/sky/6.ppm", "start": 15738023, "end": 18883768}], "remote_package_size": 18883768});
 
   })();
 
@@ -4789,6 +4789,8 @@ function dbg(text) {
       GLctx.bindTexture(target, GL.textures[texture]);
     };
 
+  function _glBlendFunc(x0, x1) { GLctx.blendFunc(x0, x1) }
+
   var _glBufferData = (target, size, data, usage) => {
   
       if (true) { // WebGL 2 provides new garbage-free entry points to call to WebGL. Use those always when possible.
@@ -5471,6 +5473,7 @@ var wasmImports = {
   glAttachShader: _glAttachShader,
   glBindBuffer: _glBindBuffer,
   glBindTexture: _glBindTexture,
+  glBlendFunc: _glBlendFunc,
   glBufferData: _glBufferData,
   glClearColor: _glClearColor,
   glCompileShader: _glCompileShader,

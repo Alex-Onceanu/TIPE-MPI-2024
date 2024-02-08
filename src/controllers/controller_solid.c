@@ -8,6 +8,10 @@ void controller_solid_draw(controller_p this)
 {
     controller_solid_p this2 = (controller_solid_p)this;
     model_3D_draw(this2->model, this2->materiau, controller_get_program_id(&this2->super));
+    if (this2->model.model_id == SPHERE_BIG_BUF)
+    {
+        model_3D_draw((model_3D_t){SHADOW_BUF, NO_TEXTURE}, this2->materiau, SHADOW_PROGRAM);
+    }
 }
 
 controller_solid_p Controller_solid(model_3D_t __model, MATERIAU_TYPE_t materiau_type)

@@ -93,7 +93,7 @@ void physics_manager_update(controller_p this2)
     {
         dt = time_between_frames * FPS;
     }
-    // dt = dt > 0 ? -dt : dt;
+    dt = dt > 60.0 ? 1.0 : dt;
     printf("dt = %f\n", dt);
 
     physics_manager_p this = (physics_manager_p)this2;
@@ -109,14 +109,6 @@ void physics_manager_update(controller_p this2)
         // Poids et frottements fluides : ces forces s'appliquent à tout le monde
         tmp_controller = (controller_kinematics_p)vector_get_at(this->kinematic_controllers, i);
 
-        tmp_fx = -tmp_controller->speed.fx * FLUID_MU;
-        tmp_fy = -tmp_controller->speed.fy * FLUID_MU;
-        tmp_fz = -tmp_controller->speed.fz * FLUID_MU;
-
-        // printf("it %d : pos.fx : %f, pos.fy : %f, pos.fz : %f\n", i, tmp_controller->pos.fx, tmp_controller->pos.fy, tmp_controller->pos.fz);
-
-        controller_kinematics_add_force(tmp_controller, Force3(tmp_fx, tmp_fy, tmp_fz));
-
         // Réaction du support : si pos.fy < 0 on ajoute une force valant -1.5 * speed.fy (effet de rebond)
         // !! ne pas oublier d'implémenter les frottements solides !!
         if (tmp_controller->pos.fy <= 0.0)
@@ -124,14 +116,20 @@ void physics_manager_update(controller_p this2)
             tmp_controller->pos.fy = 0.0;
             if (ABS(tmp_controller->speed.fy) > 0.1) // Pas de frottements solides dynamiques si la vitesse est trop faible (~ frottements statiques)
             {
-                tmp_fx = -SOLID_DYNAMIC_MU * tmp_controller->speed.fx * tmp_controller->mass / dt;
-                // tmp_fx = 0.0;
-                tmp_fy = -tmp_controller->speed.fy * tmp_controller->mass * 1.2 / dt;
-                // tmp_fz = 0.0;
-                tmp_fz = -SOLID_DYNAMIC_MU * tmp_controller->speed.fz * tmp_controller->mass / dt;
+                // tmp_fx = (tmp_controller->speed.fx > 0.0 ? -1.0 : 1.0) * SOLID_DYNAMIC_MU * tmp_controller->mass * GRAVITY;
+                tmp_fx = -tmp_controller->speed.fx * FLUID_MU;
+                tmp_fy = -tmp_controller->mass * tmp_controller->speed.fy * 1.3 / dt;
+                tmp_fz = -tmp_controller->speed.fz * FLUID_MU;
+                // tmp_fz = (tmp_controller->speed.fz > 0.0 ? -1.0 : 1.0) * SOLID_DYNAMIC_MU * tmp_controller->mass * GRAVITY;
 
                 controller_kinematics_add_force(tmp_controller, Force3(tmp_fx, tmp_fy, tmp_fz));
             }
+
+            tmp_fx = -tmp_controller->speed.fx * 2.0 * FLUID_MU;
+            tmp_fy = -tmp_controller->speed.fy * 2.0 * FLUID_MU;
+            tmp_fz = -tmp_controller->speed.fz * 2.0 * FLUID_MU;
+
+            controller_kinematics_add_force(tmp_controller, Force3(tmp_fx, tmp_fy, tmp_fz));
         }
         else
         {
@@ -139,6 +137,12 @@ void physics_manager_update(controller_p this2)
             tmp_fx = 0.0;
             tmp_fy = -tmp_controller->mass * GRAVITY;
             tmp_fz = 0.0;
+
+            controller_kinematics_add_force(tmp_controller, Force3(tmp_fx, tmp_fy, tmp_fz));
+
+            tmp_fx = -tmp_controller->speed.fx * FLUID_MU;
+            tmp_fy = -tmp_controller->speed.fy * FLUID_MU;
+            tmp_fz = -tmp_controller->speed.fz * FLUID_MU;
 
             controller_kinematics_add_force(tmp_controller, Force3(tmp_fx, tmp_fy, tmp_fz));
         }

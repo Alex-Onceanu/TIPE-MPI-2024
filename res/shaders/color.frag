@@ -27,7 +27,7 @@ void main() {
     vec3 reflection = reflect(-lightDir, v_Normal);
     vec3 viewDirection = normalize(v_FragPos - u_CameraPos);
     float produitScalaire = reflection.x * viewDirection.x + reflection.y * viewDirection.y + reflection.z * viewDirection.z;
-    float specular = pow(max(produitScalaire, 0.0), 32.0);
+    float specular = pow(max(produitScalaire, 0.0), 64.0);
 
     gl_FragColor = vec4(v_Color * lightColor * (u_Material.ambient * ambientIntensity + diffuse * u_Material.diffuse + specular * u_Material.specular), 1.0);
 }

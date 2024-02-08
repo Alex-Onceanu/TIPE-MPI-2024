@@ -114,8 +114,9 @@ void lance_boule(world_p this)
 {
     entity_p e = Entity(COLOR_PROGRAM);
     // masse réelle d'une boule de petanque : 0,730 kg
-    const float mass = 0.5 + (rand() % 10) / 5.0;
-    const float v0 = 2.0;
+    // const float mass = 0.5 + (rand() % 10) / 5.0;
+    const float mass = 0.73;
+    const float v0 = 1.3;
 
     printf("mass = %f\n", mass);
 

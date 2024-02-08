@@ -53,7 +53,6 @@ void controller_kinematics_draw(controller_p __this)
 {
     controller_kinematics_p this = (controller_kinematics_p)__this;
 
-
     // tr est la matrice de transformation de l'ensemble des translations que va subir l'objet
     // En fait il va juste subir la translation qui l'emmene de (0,0,0) à sa position actuelle
     mat4_t tr = translation(this->pos.fx, this->pos.fy, this->pos.fz);
@@ -67,6 +66,15 @@ void controller_kinematics_draw(controller_p __this)
     glUniformMatrix4fv(u_Translation, 1, GL_FALSE, mat4_get(&tr));
 
     int u_Rotation = glGetUniformLocation(program, "u_Rotation");
+    glUniformMatrix4fv(u_Rotation, 1, GL_FALSE, mat4_get(&rotation));
+
+    program = PROGRAM_ID[SHADOW_PROGRAM];
+    glUseProgram(program);
+
+    u_Translation = glGetUniformLocation(program, "u_Translation");
+    glUniformMatrix4fv(u_Translation, 1, GL_FALSE, mat4_get(&tr));
+
+    u_Rotation = glGetUniformLocation(program, "u_Rotation");
     glUniformMatrix4fv(u_Rotation, 1, GL_FALSE, mat4_get(&rotation));
 }
 

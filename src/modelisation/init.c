@@ -127,6 +127,17 @@ void init_buffers()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, NB_INDEX_PER_BUFFER[SPHERE_SMALL_BUF] * sizeof(unsigned int), index_buffer, GL_DYNAMIC_DRAW);
 
     // ________________________________________Fin Cochonnet_____________________________________________
+    // ________________________________________Ombre_____________________________________________________
+
+    // Vertex buffer, on envoie à OpenGL les données du triangle
+    vertex_buffer = init_vertex_buffer_pave_data(NB_VERTEX_PER_BUFFER + SHADOW_BUF, 2.0 * BIG_SPHERE_RADIUS, 0.5, 2.0 * BIG_SPHERE_RADIUS, 0.01, 0.01, 0.01);
+    glGenBuffers(1, VERTEX_BUFFER_ID + SHADOW_BUF);
+    glBindBuffer(GL_ARRAY_BUFFER, VERTEX_BUFFER_ID[SHADOW_BUF]);
+    glBufferData(GL_ARRAY_BUFFER, 2 * NB_VERTEX_PER_BUFFER[SHADOW_BUF] * NB_ATTRIBUTES_VERTEX * sizeof(float), vertex_buffer, GL_DYNAMIC_DRAW);
+
+    // Pas de index buffer pour les cubes
+    NB_INDEX_PER_BUFFER[SHADOW_BUF] = 0;
+    INDEX_BUFFER_ID[SHADOW_BUF] = 0;
 }
 
 // paths = 6 chemins de fichiers (.ppm par pitié)
@@ -193,7 +204,8 @@ void init()
     char *shader_paths[NB_PROGRAMS][2] = {{"../res/shaders/color.vert", "../res/shaders/color.frag"},
                                           {"../res/shaders/texture.vert", "../res/shaders/texture.frag"},
                                           {"../res/shaders/skybox.vert", "../res/shaders/skybox.frag"},
-                                          {"../res/shaders/checkerboard.vert", "../res/shaders/checkerboard.frag"}};
+                                          {"../res/shaders/checkerboard.vert", "../res/shaders/checkerboard.frag"},
+                                          {"../res/shaders/shadow.vert", "../res/shaders/shadow.frag"}};
 
     for (int program_it = 0; program_it < NB_PROGRAMS; program_it++)
     {
