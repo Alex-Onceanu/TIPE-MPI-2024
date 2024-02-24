@@ -37,9 +37,9 @@ world_p world_init()
     this->events = vector_init();
     this->manager = Physics_manager();
 
-    const char *SKYBOX[6] = {"../res/textures/sky/1.ppm", "../res/textures/sky/2.ppm", "../res/textures/sky/3.ppm", "../res/textures/sky/4.ppm", "../res/textures/sky/5.ppm", "../res/textures/sky/6.ppm"};
+    const char *SKYBOX[6] = {"../res/textures/sky/right.ppm", "../res/textures/sky/left.ppm", "../res/textures/sky/up.ppm", "../res/textures/sky/down.ppm", "../res/textures/sky/front.ppm", "../res/textures/sky/back.ppm"};
 
-    this->camera = Controller_camera(0.0, 1.0, 0.0);
+    this->camera = Controller_camera(7.0, 1.0, 0.0);
     {
         // Instancier la camera
         entity_p cam = Entity(NO_PROGRAM);
@@ -48,26 +48,13 @@ world_p world_init()
     }
 
     {
-        // On represente la source de lumiere par un "soleil" cubique
-        entity_p e = Entity(COLOR_PROGRAM);
-        controller_kinematics_p ck = Controller_kinematics(1.0, Force3(SUN_X, SUN_Y, SUN_Z), Force3(0.0, 0.0, 0.0), NULL);
-
-        // model_3D_p cube3d = Sphere(0.8, 1.0, 1.0, 1.0);
-        model_3D_t sun = {SPHERE_SMALL_BUF, NO_TEXTURE};
-        controller_solid_p cs = Controller_solid(sun, SOLEIL);
-
-        entity_add_controller(e, (controller_p)ck);
-        entity_add_controller(e, (controller_p)cs);
-        vector_append(this->entities, (void *)e);
-    }
-
-    {
         // Le sol est un pavé
         entity_p sol = Entity(CHECKERBOARD_PROGRAM);
         controller_kinematics_p c1 = Controller_kinematics(1000000.0, Force3(0.0, -2.0, 0.0), Force3(0.0, 0.0, 0.0), NULL);
 
+
         // model_3D_p pav3d = Pave(600.0, 2.0, 600.0, 0.44, 0.401, 0.3313, NULL);
-        model_3D_t pav3d = {GROUND_BUF, NO_TEXTURE};
+        model_3D_t pav3d = {GROUND_BUF, NO_TEXTURE, init_texture("../res/textures/noise.ppm")};
         controller_solid_p c2 = Controller_solid(pav3d, SABLE);
 
         entity_add_controller(sol, (controller_p)c1);
@@ -81,7 +68,7 @@ world_p world_init()
         controller_kinematics_p ck = Controller_kinematics(1.0, Force3(0.0, 1.0, 0.0), Force3(0.0, 0.0, 0.0), NULL);
 
         // model_3D_p cube3d = Cube(4.0, 1.0, 1.0, 1.0, SKYBOX);
-        model_3D_t cube3d = {CUBE_TEST_BUF, init_cubemap(SKYBOX)};
+        model_3D_t cube3d = {CUBE_TEST_BUF, init_cubemap(SKYBOX), NO_TEXTURE};
         controller_solid_p cs = Controller_solid(cube3d, SOLEIL);
 
         entity_add_controller(e, (controller_p)ck);
@@ -134,7 +121,7 @@ void lance_boule(world_p this)
                                                this->camera->direction_z * v0 * mass));
 
     // model_3D_p model = Sphere(1.0, 0.3, 0.3, 0.3);
-    model_3D_t model = {SPHERE_BIG_BUF, NO_TEXTURE};
+    model_3D_t model = {SPHERE_BIG_BUF, NO_TEXTURE, NO_TEXTURE};
     controller_solid_p cs = Controller_solid(model, FER);
 
     entity_add_controller(e, (controller_p)ck);

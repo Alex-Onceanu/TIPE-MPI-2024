@@ -52,9 +52,13 @@ extern unsigned int INDEX_BUFFER_ID[NB_BUFFERS];
 #define SMALL_SPHERE_RADIUS 0.4
 
 // Position (de monde) de la source de lumière
-#define SUN_X -8.0
-#define SUN_Y 20.0
-#define SUN_Z -30.0
+extern float SUN_X;
+extern float SUN_Y;
+extern float SUN_Z;
+
+#define SUN_X_0 -8.0
+#define SUN_Y_0 20.0
+#define SUN_Z_0 -30.0
 
 // _______________________________________Physique________________________________________
 

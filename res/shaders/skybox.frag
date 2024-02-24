@@ -24,7 +24,7 @@ void main() {
     
     // vec3 uv = 2.0 * v_FragPos;
 
-    // vec3 col = (1.0 - uv.y) * vec3(1.0, 1.0, 1.0) + uv.y * vec3(0.0, 0.749, 1.0);
+    // vec3 col = (1.0 - uv.y) * vec3(0.588,0.8,0.89) + uv.y * vec3(0.098,0.0,0.529);
 
     // gl_FragColor = vec4(col, 1.0);
 }

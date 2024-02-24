@@ -32,6 +32,15 @@ unsigned char *read_ppm(const char *filename_ppm, int *width, int *height)
         fclose(fichier);
         return NULL;
     }
+    fgetc(fichier);
+    if(fgetc(fichier) == '#')
+    {
+        while(fgetc(fichier) != '\n');
+    }
+    else
+    {
+        fseek(fichier, -1, SEEK_CUR);
+    }
 
     int max_color = 255;
     if (fscanf(fichier, "%d %d %d", width, height, &max_color) != 3)

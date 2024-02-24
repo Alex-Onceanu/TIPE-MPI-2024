@@ -23,6 +23,11 @@ unsigned int VERTEX_BUFFER_ID[NB_BUFFERS] = {0};
 unsigned int NB_INDEX_PER_BUFFER[NB_BUFFERS] = {0};
 unsigned int INDEX_BUFFER_ID[NB_BUFFERS] = {0};
 
+float SUN_X = SUN_X_0;
+float SUN_Y = SUN_Y_0;
+float SUN_Z = SUN_Z_0;
+
+
 // Affiche les erreurs de shader et OpenGL
 void debug()
 {

@@ -16,6 +16,9 @@ typedef struct model_3D
 
     // Si ce modèle n'est pas un cube avec des textures (cubemap), cette constante vaut NO_TEXTURE
     unsigned int cubemap_id;
+
+    // Si ce modèle ne doit pas stocker de texture unique, cette constante vaut NO_TEXTURE
+    unsigned int texture_id;
 } model_3D_t;
 
 // // Vertex buffer et Index buffer doivent etre alloués aupréalablement sur le tas

@@ -135,6 +135,7 @@ void controller_camera_update(controller_p this)
 
     for (int i = 0; i < NB_PROGRAMS; i++)
     {
+        glUseProgram(PROGRAM_ID[i]);
         int u_CameraPos = glGetUniformLocation(PROGRAM_ID[i], "u_CameraPos");
         glUniform3f(u_CameraPos, this2->x, this2->y, this2->z);
     }

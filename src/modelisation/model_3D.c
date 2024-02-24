@@ -267,11 +267,21 @@ void model_3D_draw(model_3D_t this, materiau_t materiau, unsigned int program_in
         // On set la texture de this comme texture active
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, this.cubemap_id);
+    
         unsigned int u_Cubemap = glGetUniformLocation(program, "u_Cubemap");
         glUniform1i(u_Cubemap, 0);
 
         // Clean ?
         // glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+    }
+
+    if(this.texture_id != NO_TEXTURE)
+    {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, this.texture_id);
+
+        unsigned int u_Texture = glGetUniformLocation(program, "u_Texture");
+        glUniform1i(u_Texture, 0);
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, VERTEX_BUFFER_ID[this.model_id]);

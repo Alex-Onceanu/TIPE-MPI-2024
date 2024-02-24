@@ -140,6 +140,32 @@ void init_buffers()
     INDEX_BUFFER_ID[SHADOW_BUF] = 0;
 }
 
+unsigned int init_texture(const char* path)
+{
+    int width, height;
+    unsigned char *data = read_ppm(path, &width, &height);
+
+    // Chaque texture chargée est associée à un uint, qu'on stocke dans un
+    // unsigned int[], ici comme il y en a 1 seul on envoie &texture
+    unsigned int texture_id;
+    // Génération du texture object
+    glGenTextures(1, &texture_id);
+
+    glActiveTexture(GL_TEXTURE0);
+
+    glBindTexture(GL_TEXTURE_2D, texture_id);
+
+    // On attache une image 2d à un texture object
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+    glGenerateMipmap(GL_TEXTURE_2D); // INVALID_OPERATION
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    return texture_id;
+}
+
 // paths = 6 chemins de fichiers (.ppm par pitié)
 unsigned int init_cubemap(const char *paths[6])
 {
@@ -182,8 +208,6 @@ unsigned int init_cubemap(const char *paths[6])
             // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
         }
     }
-
-    // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
     return texture_id;
 }

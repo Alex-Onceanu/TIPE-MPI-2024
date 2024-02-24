@@ -4,8 +4,8 @@
 #include "controller.h"
 #include "../tools/maths.h"
 
-// On part du principe que personne ne va jamais subir simultanément 10 forces
-#define NB_MAX_FORCES 10
+// On part du principe que personne ne va jamais subir simultanément 20 forces
+#define NB_MAX_FORCES 20
 
 typedef struct controller_kinematics
 {

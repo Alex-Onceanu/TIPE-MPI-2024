@@ -8,6 +8,9 @@ unsigned int compile_shader(unsigned int type, const char *source);
 // Compile deux shaders envoyés en param et renvoie un programme OpenGL
 int create_program(const char *vertex_shader, const char *fragment_shader);
 
+// Charge une texture, renvoie son identifiant OpenGL
+unsigned int init_texture(const char* path);
+
 // Charge un cubemap, renvoie son identifiant OpenGL
 unsigned int init_cubemap(const char* paths[6]);
 

@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <time.h>
 
+#include <GLES3/gl3.h>
+
 #include "../tools/constantes.h"
 #include "physics_manager.h"
 #include "../tools/maths.h"
@@ -137,6 +139,21 @@ void physics_manager_update(controller_p this2)
         dt = time_between_frames * FPS;
     }
     dt = dt > 60.0 ? 1.0 : dt;
+
+    // printf("current_time : %f\n", current_time);
+    unsigned int program;
+    int u_Light;
+    float light_theta = current_time;
+    SUN_X = cosf(light_theta) * SUN_X_0 - sinf(light_theta) * SUN_Z_0;
+    SUN_Y = SUN_Y_0;
+    SUN_Z = sinf(light_theta) * SUN_X_0 + cosf(light_theta) * SUN_Z_0;
+
+    for(int i = 0; i < NB_PROGRAMS; i++)
+    {
+        glUseProgram(PROGRAM_ID[i]);
+        u_Light = glGetUniformLocation(PROGRAM_ID[i], "u_Light");
+        glUniform3f(u_Light, SUN_X, SUN_Y, SUN_Z);
+    }
 
     physics_manager_p this = (physics_manager_p)this2;
     int nb_controllers = vector_len(this->kinematic_controllers);
