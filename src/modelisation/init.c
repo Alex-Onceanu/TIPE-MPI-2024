@@ -209,6 +209,20 @@ unsigned int init_cubemap(const char *paths[6])
         }
     }
 
+    int wants_skybox[] = { SKYBOX_PROGRAM,COLOR_PROGRAM };
+    int nb_wants_skybox = sizeof(wants_skybox) / sizeof(int);
+
+    for(int i = 0; i < nb_wants_skybox; i++)
+    {
+        glUseProgram(PROGRAM_ID[wants_skybox[i]]); 
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, texture_id);
+
+        unsigned int u_Cubemap = glGetUniformLocation(PROGRAM_ID[wants_skybox[i]], "u_Cubemap");
+        glUniform1i(u_Cubemap, 0);
+    }
+
     return texture_id;
 }
 
