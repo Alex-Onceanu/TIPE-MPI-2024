@@ -64,9 +64,10 @@ extern float SUN_Z;
 
 #define PI 3.141592653589793
 #define GRAVITY 0.03
-#define FLUID_MU 0.01
-#define SOLID_STATIC_MU 0.08
-#define SOLID_DYNAMIC_MU 0.13
-#define COLLISION_ENERGY_LOSS 0.0
+#define FLUID_MU 0.006
+#define SOLID_STATIC_MU 0.4
+#define SOLID_DYNAMIC_MU 0.3
+#define ROTATION_ATTENUATION 0.04
+#define ROTATION_STATIC 0.005
 
 #endif

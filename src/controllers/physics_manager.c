@@ -8,6 +8,9 @@
 #include "physics_manager.h"
 #include "../tools/maths.h"
 
+// Nb de frames d'attente entre deux collisions d'un meme couple de boules
+#define MAX_COOLDOWN 120
+
 // Renvoie 1 si la boule c1 touche la boule c2, 0 sinon
 int collision(controller_kinematics_p c1, controller_kinematics_p c2)
 {
@@ -15,121 +18,7 @@ int collision(controller_kinematics_p c1, controller_kinematics_p c2)
     return SQ_NORME2(pos_diff) < SQUARED(c1->radius + c2->radius);
 }
 
-#define PROPORTION(a, x, b) (a == b ? 0.0 : (x - a) / (b - a))
-#define LERP(a, b, t) (a * t + b * (1.0 - t))
-
-// Étant donnés deux points z1 et z2 avec la vitesse que possède un objet en chacun de ces deux points (v1 et v2),
-// Réalise une interpolation linéaire (composante par composante) afin d'approximer la vitesse v3 qu'avait cet objet en z3
-// Hypothèse : z3 appartient au segment [z1, z3]
-force3_t lerp_speed_from_pos(force3_t z1, force3_t z3, force3_t z2, force3_t v1, force3_t v2)
-{
-    printf("Go lerp_speed_from_pos avec pos z1 : (%f; %f; %f), z3 : (%f; %f; %f), z2 : (%f; %f; %f), v1 : (%f; %f; %f), v2 : (%f; %f; %f)\n", z1.fx, z1.fy, z1.fz, z3.fx, z3.fy, z3.fz, z2.fx, z2.fy, z2.fz, v1.fx, v1.fy, v1.fz, v2.fx, v2.fy, v2.fz);
-    // Pour chaque composante, donne un coefficient entre 0 et 1 correspondant à "à quel point z3 est-il proche de z2 sur cette composante ?"
-    force3_t proportion = Force3(PROPORTION(z1.fx, z3.fx, z2.fx), PROPORTION(z1.fy, z3.fy, z2.fy), PROPORTION(z1.fz, z3.fz, z2.fz));
-    // printf("Proportion : %f %f %f\n", proportion.fx, proportion.fy, proportion.fz);
-    // force3_t ans = Force3(proportion.fx * (v2.fx - v1.fx) + v1.fx, proportion.fy * (v2.fy - v1.fy) + v1.fy, proportion.fz * (v2.fz - v1.fz) + v1.fz);
-    force3_t ans = Force3(LERP(v1.fx, v2.fx, proportion.fx), LERP(v1.fy, v2.fy, proportion.fy), LERP(v1.fz, v2.fz, proportion.fz));
-    // printf("Ans : %f %f %f\n", ans.fx, ans.fy, ans.fz);
-
-    return ans;
-}
-
-// "Remonte le temps" jusqu'au moment où les boules se touchent, avant qu'elles ne rentrent l'une dans l'autre
-// Hypothèse : les deux boules s'intersectent grossièrement.
-void teleport_and_update_speed(controller_kinematics_p tmp_controller_1, controller_kinematics_p tmp_controller_2)
-{
-    // On va suivre les directions de leur vitesses respectives pour trouver la position précise de leur collision
-    // Cela revient à résoudre pour k l'équation :
-    // || z2 + k * v2 - (z1 + k * v1) || = 2 * r
-    // En élevant au carré on tombe sur une équation de degré 2 : akk + bk + c = 0 (avec a, b, c calculés ci-dessous)
-    force3_t pos_diff = force3_sub(tmp_controller_2->pos, tmp_controller_2->pos);
-    force3_t speed_diff = force3_sub(tmp_controller_2->speed, tmp_controller_1->speed);
-
-    float a = SQ_NORME2(speed_diff);
-    float b = 2.0 * DOT_PRODUCT(pos_diff, speed_diff);
-    float c = SQ_NORME2(pos_diff) - SQUARED(tmp_controller_1->radius + tmp_controller_2->radius);
-
-    if (a == 0 || (b * b - 4.0 * a * c) < 0)
-    {
-        printf("Impossible de remonter le temps.\n");
-        return;
-    }
-
-    // Résolution de l'équation de degré 2 : on ne garde que la solution négative (car on veut "remonter le temps")
-    float k = (-b - my_sqrtf(b * b - 4.0 * a * c)) / 2.0 * a;
-    printf("k = %f\n", k);
-    if (k >= -0.000000001 || k <= -1.0)
-    {
-        printf("!!!!! K = 0 !!!!!!\n");
-        return;
-    }
-    // k *= 1.01;
-
-    // Et pour pas qu'elles aient une trop grande vitesse (On ajoute de l'énergie au système quand on "téléporte" les boules)
-    // On interpole linéairement la vitesse qu'elles auraient dû avoir en cette position avec lerp_speed_from_pos
-
-    force3_t collision_pos_1 = LINEAR_COMBINATION(tmp_controller_1->pos, tmp_controller_1->speed, k);
-    printf("Avant (1) : pos = %f, %f, %f | speed = %f, %f, %f\n", tmp_controller_1->pos.fx, tmp_controller_1->pos.fy, tmp_controller_1->pos.fz, tmp_controller_1->speed.fx, tmp_controller_1->speed.fy, tmp_controller_1->speed.fz);
-    force3_t new_speed_1 = lerp_speed_from_pos(tmp_controller_1->old_pos, tmp_controller_1->pos, collision_pos_1, tmp_controller_1->old_speed, tmp_controller_1->speed);
-    // printf("New speed : %f %f %f\n", new_speed_1.fx, new_speed_1.fy, new_speed_1.fz);
-    tmp_controller_1->speed = new_speed_1;
-    tmp_controller_1->pos = collision_pos_1;
-    printf("Après (1) : pos = %f, %f, %f | speed = %f, %f, %f\n", tmp_controller_1->pos.fx, tmp_controller_1->pos.fy, tmp_controller_1->pos.fz, tmp_controller_1->speed.fx, tmp_controller_1->speed.fy, tmp_controller_1->speed.fz);
-
-    printf("Avant (2) : pos = %f, %f, %f | speed = %f, %f, %f\n", tmp_controller_2->pos.fx, tmp_controller_2->pos.fy, tmp_controller_2->pos.fz, tmp_controller_2->speed.fx, tmp_controller_2->speed.fy, tmp_controller_2->speed.fz);
-    force3_t collision_pos_2 = LINEAR_COMBINATION(tmp_controller_2->pos, tmp_controller_2->speed, k);
-    tmp_controller_2->speed = lerp_speed_from_pos(tmp_controller_2->old_pos, tmp_controller_2->pos, collision_pos_2, tmp_controller_2->old_speed, tmp_controller_2->speed);
-    tmp_controller_2->pos = collision_pos_2;
-    printf("Après (2) : pos = %f, %f, %f | speed = %f, %f, %f\n", tmp_controller_2->pos.fx, tmp_controller_2->pos.fy, tmp_controller_2->pos.fz, tmp_controller_2->speed.fx, tmp_controller_2->speed.fy, tmp_controller_2->speed.fz);
-
-    printf("\n");
-}
-
-void physics_manager_update_collisions(physics_manager_p this, int nb_controllers)
-{
-    controller_kinematics_p tmp_controller = NULL;
-    force3_t impact_direction = {};
-    float impact_coef = 0.0;
-    float impact_coef_1 = 0.0;
-    float impact_coef_2 = 0.0;
-    controller_kinematics_p tmp_controller_2 = NULL;
-    for (int i = 0; i < nb_controllers; i++)
-    {
-        tmp_controller = (controller_kinematics_p)vector_get_at(this->kinematic_controllers, i);
-        for (int j = i + 1; j < nb_controllers; j++)
-        {
-            tmp_controller_2 = (controller_kinematics_p)vector_get_at(this->kinematic_controllers, j);
-            if (collision(tmp_controller, tmp_controller_2))
-            {
-                // printf("Collision ! m1 = %f, m2 = %f\nv10 = %f %f %f, v20 = %f %f %f\n", tmp_controller->mass, tmp_controller_2->mass, tmp_controller->speed.fx, tmp_controller->speed.fy, tmp_controller->speed.fz, tmp_controller_2->speed.fx, tmp_controller_2->speed.fy, tmp_controller_2->speed.fz);
-                // Avant de calculer la force à appliquer, il faut "téléporter" les boules de sorte à ce qu'elles ne s'intersectent pas grossièrement
-                // teleport_and_update_speed(tmp_controller, tmp_controller_2);
-
-                impact_direction = force3_sub(tmp_controller->pos, tmp_controller_2->pos);
-                normalize(&impact_direction);
-
-                impact_coef_1 = ABS(DOT_PRODUCT(impact_direction, tmp_controller->speed));
-                impact_coef_2 = ABS(DOT_PRODUCT(impact_direction, tmp_controller_2->speed));
-
-                // Faux, refaire les collisions inélastiques
-                impact_coef = (1.0 - COLLISION_ENERGY_LOSS) * 0.5 * (impact_coef_1 + impact_coef_2) * tmp_controller->mass / (tmp_controller->mass + tmp_controller_2->mass);
-
-                controller_kinematics_add_force(tmp_controller, Force3(impact_coef * impact_direction.fx * tmp_controller->mass / dt,
-                                                                       impact_coef * impact_direction.fy * tmp_controller->mass / dt,
-                                                                       impact_coef * impact_direction.fz * tmp_controller->mass / dt));
-
-                impact_coef *= tmp_controller_2->mass / tmp_controller->mass;
-
-                controller_kinematics_add_force(tmp_controller_2, Force3(-impact_coef * impact_direction.fx * tmp_controller_2->mass / dt,
-                                                                         -impact_coef * impact_direction.fy * tmp_controller_2->mass / dt,
-                                                                         -impact_coef * impact_direction.fz * tmp_controller_2->mass / dt));
-            }
-        }
-    }
-}
-
-// C'est dans cet update que physics_manager va faire subir des forces aux controlleurs qu'il gère
-void physics_manager_update(controller_p this2)
+void update_dt()
 {
     double current_time = (double)clock() / (double)CLOCKS_PER_SEC;
     double time_between_frames = current_time - old_time;
@@ -139,21 +28,114 @@ void physics_manager_update(controller_p this2)
         dt = time_between_frames * FPS;
     }
     dt = dt > 60.0 ? 1.0 : dt;
+}
 
-    // printf("current_time : %f\n", current_time);
-    unsigned int program;
-    int u_Light;
-    float light_theta = current_time;
-    SUN_X = cosf(light_theta) * SUN_X_0 - sinf(light_theta) * SUN_Z_0;
-    SUN_Y = SUN_Y_0;
-    SUN_Z = sinf(light_theta) * SUN_X_0 + cosf(light_theta) * SUN_Z_0;
+void apply_collision_force(controller_kinematics_p c1, controller_kinematics_p c2)
+{
+    force3_t impact_direction = force3_sub(c1->pos, c2->pos);
+    force3_t v_diff = force3_sub(c1->speed, c2->speed);
 
-    for(int i = 0; i < NB_PROGRAMS; i++)
+    // Si les deux boules coincident
+    if (SQ_NORME2(impact_direction) <= 0.00001)
     {
-        glUseProgram(PROGRAM_ID[i]);
-        u_Light = glGetUniformLocation(PROGRAM_ID[i], "u_Light");
-        glUniform3f(u_Light, SUN_X, SUN_Y, SUN_Z);
+        if (SQ_NORME2(v_diff) <= 0.00001)
+        {
+            // Deux boules immobiles exactement au même endroit, situation assez improbable...
+            c1->pos.fx += c1->radius + c2->radius;
+            return;
+        }
+
+        // On téléporte une boule en arrière pour que les deux soient distantes de teleport_dist
+        const float teleport_dist = 0.1;
+
+        controller_kinematics_p c_max = SQ_NORME2(c1->speed) > SQ_NORME2(c2->speed) ? c1 : c2;
+        force3_t teleport_direction = c_max->speed;
+        normalize(&teleport_direction);
+        c_max->pos = LINEAR_COMBINATION(c_max->pos, teleport_direction, -teleport_dist);
+
+        impact_direction = force3_sub(c1->pos, c2->pos);
     }
+    normalize(&impact_direction);
+
+    float m1 = c1->mass;
+    float m2 = c2->mass;
+
+    // Première force de collision : conservation de l'énergie cinétique
+
+    float F1_norm = -2.0 * DOT_PRODUCT(v_diff, impact_direction) * m2 * m1 / (dt * (m1 + m2));
+    float F2_norm = 2.0 * DOT_PRODUCT(v_diff, impact_direction) * m1 * m2 / (dt * (m1 + m2));
+
+    force3_t F1 = force3_scale(impact_direction, F1_norm);
+    force3_t F2 = force3_scale(impact_direction, F2_norm);
+    force3_t impact_pos = LINEAR_COMBINATION(c2->pos, impact_direction, c2->radius);
+
+    controller_kinematics_add_force(c1, F1, impact_pos);
+    controller_kinematics_add_force(c2, F2, impact_pos);
+}
+
+void physics_manager_update_collisions(physics_manager_p this, int nb_controllers)
+{
+    controller_kinematics_p tmp_controller = NULL;
+    force3_t impact_direction = {};
+    controller_kinematics_p tmp_controller_2 = NULL;
+    float m1, m2;
+
+    printf("\n");
+
+    for (int i = 0; i < nb_controllers; i++)
+    {
+        tmp_controller = (controller_kinematics_p)vector_get_at(this->kinematic_controllers, i);
+        for (int j = i + 1; j < nb_controllers; j++)
+        {
+            tmp_controller_2 = (controller_kinematics_p)vector_get_at(this->kinematic_controllers, j);
+
+            // string_of_pointer_couple : stocke sous forme de string le couple des deux boules pour en faire une KEY de DICT
+            char sopc[21];
+            snprintf(sopc, 20, "%p%p", (void *)tmp_controller, (void *)tmp_controller_2);
+            if (!appartient(this->colliding, sopc))
+            {
+                snprintf(sopc, 20, "%p%p", (void *)tmp_controller_2, (void *)tmp_controller);
+            }
+
+            if (collision(tmp_controller, tmp_controller_2))
+            {
+                printf("Collision !\n");
+
+                // Diminuer de 1 le cooldown du couple puis continue (s'il existe), sinon appliquer la force de collision et mettre le cooldown du couple a MAX_COOLDOWN
+                if (appartient(this->colliding, sopc))
+                {
+                    int v = rechercher(this->colliding, sopc);
+                    supprimer(this->colliding, sopc);
+                    inserer(this->colliding, sopc, v > 0 ? (v - 1) : MAX_COOLDOWN);
+                    printf("Pas le droit d'appliquer la force : v = %d\n", v);
+                    continue;
+                }
+
+                printf("Tout va bien, on a le droit d'appliquer la force\n");
+
+                inserer(this->colliding, sopc, MAX_COOLDOWN);
+
+                apply_collision_force(tmp_controller, tmp_controller_2);
+            }
+            else
+            {
+                // Mettre leur cooldown a 0
+                if (appartient(this->colliding, sopc))
+                {
+                    int v = rechercher(this->colliding, sopc);
+                    supprimer(this->colliding, sopc);
+                    if (v > 0)
+                        inserer(this->colliding, sopc, v - 1);
+                }
+            }
+        }
+    }
+}
+
+// C'est dans cet update que physics_manager va faire subir des forces aux controlleurs qu'il gère
+void physics_manager_update(controller_p this2)
+{
+    update_dt();
 
     physics_manager_p this = (physics_manager_p)this2;
     int nb_controllers = vector_len(this->kinematic_controllers);
@@ -166,33 +148,80 @@ void physics_manager_update(controller_p this2)
     for (int i = 0; i < nb_controllers; i++)
     {
         tmp_controller = (controller_kinematics_p)vector_get_at(this->kinematic_controllers, i);
+        float v = norme2(tmp_controller->speed);
 
         // Frottements fluides
-        controller_kinematics_add_force(tmp_controller, Force3(-tmp_controller->speed.fx * FLUID_MU,
-                                                               -tmp_controller->speed.fy * FLUID_MU,
-                                                               -tmp_controller->speed.fz * FLUID_MU));
+        controller_kinematics_add_force(tmp_controller, Force3(-tmp_controller->speed.fx * FLUID_MU, -tmp_controller->speed.fy * FLUID_MU, -tmp_controller->speed.fz * FLUID_MU),
+                                        tmp_controller->pos);
 
+        // La rotation doit petit a petit s'attenuer
+        float w = norme2(tmp_controller->omega);
+        force3_t n_w = tmp_controller->omega;
+        normalize(&n_w);
+        if (w > ROTATION_STATIC)
+        {
+            tmp_controller->omega = LINEAR_COMBINATION(tmp_controller->omega, n_w, -ROTATION_STATIC);
+        }
+        else
+        {
+            tmp_controller->omega = force3_scale(tmp_controller->omega, (1.0 - ROTATION_ATTENUATION));
+        }
+
+        // ELEVER LE SOL
         if (tmp_controller->pos.fy <= 0.0)
         {
             tmp_controller->pos.fy = 0.0;
             if (ABS(tmp_controller->speed.fy) > 0.1)
             {
-                // Frottements solides : opposés au mouvement et de norme µ * m * g
+                // Rebond sur le sol (réaction du support)
+                controller_kinematics_add_force(tmp_controller, Force3(0.0, -tmp_controller->mass * tmp_controller->speed.fy * boing_coef / dt, 0.0),
+                                                tmp_controller->pos);
+            }
+            if (v > 0.1)
+            {
+                float noise_x = 0.0, noise_z = 0.0;
+                if (randint(1, 3) == 1)
+                {
+                    float sign1 = (float)randint(0, 1) * 2.0 - 1.0;
+                    float sign2 = (float)randint(0, 1) * 2.0 - 1.0;
+                    noise_x = sign1 * (1.0 / 100000) * (float)randint(1, 1000);
+                    noise_z = sign2 * (1.0 / 100000) * (float)randint(1, 1000);
+                }
+
+                // Rugosité du sol (frottements aléatoires) : opposés au mouvement et de norme µ * m * g
                 speed_direction_x = tmp_controller->speed.fx >= 0.0 ? 1.0 : -1.0;
                 speed_direction_z = tmp_controller->speed.fz >= 0.0 ? 1.0 : -1.0;
 
-                // Rebond sur le sol (réaction du support)
-                controller_kinematics_add_force(tmp_controller, Force3(-speed_direction_x * tmp_controller->mass * GRAVITY * SOLID_DYNAMIC_MU,
-                                                                       -tmp_controller->mass * tmp_controller->speed.fy * boing_coef / dt,
-                                                                       -speed_direction_z * tmp_controller->mass * GRAVITY * SOLID_DYNAMIC_MU));
+                controller_kinematics_add_force(tmp_controller, Force3(v * noise_x, 0.0, v * noise_z),
+                                                tmp_controller->pos);
+            }
+
+            if (v > SOLID_STATIC_MU * tmp_controller->mass * GRAVITY)
+            {
+                force3_t frottements_solides = force3_scale(tmp_controller->speed, -1);
+                normalize(&frottements_solides);
+                frottements_solides = force3_scale(frottements_solides, SOLID_STATIC_MU * tmp_controller->mass * GRAVITY);
+                frottements_solides.fy = 0.0;
+                controller_kinematics_add_force(tmp_controller, frottements_solides, LINEAR_COMBINATION(tmp_controller->pos, Force3(0.0, 1.0, 0.0), -tmp_controller->radius));
+            }
+            else if (v > 0.01)
+            {
+                force3_t frottements_solides = force3_scale(tmp_controller->speed, -1);
+
+                frottements_solides = force3_scale(frottements_solides, SOLID_DYNAMIC_MU * tmp_controller->mass * GRAVITY);
+                frottements_solides.fy = 0.0;
+                controller_kinematics_add_force(tmp_controller, frottements_solides, LINEAR_COMBINATION(tmp_controller->pos, Force3(0.0, 1.0, 0.0), -tmp_controller->radius));
+            }
+            else
+            {
+                tmp_controller->speed = Force3(0.0, 0.0, 0.0);
             }
         }
-        else
+        else if (v > 0.01)
         {
             // On applique le poids uniquement si l'objet est au-dessus du sol
-            controller_kinematics_add_force(tmp_controller, Force3(0.0,
-                                                                   -tmp_controller->mass * GRAVITY,
-                                                                   0.0));
+            controller_kinematics_add_force(tmp_controller, Force3(0.0, -tmp_controller->mass * GRAVITY, 0.0),
+                                            tmp_controller->pos);
         }
     }
 
@@ -208,6 +237,8 @@ physics_manager_p Physics_manager()
     this->super.draw = id;
 
     this->kinematic_controllers = vector_init();
+
+    this->colliding = dict_vide(1000);
 
     return this;
 }

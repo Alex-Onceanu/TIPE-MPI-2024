@@ -38,6 +38,11 @@ force3_t Force3(float __fx, float __fy, float __fz)
     return res;
 }
 
+void force3_print(force3_t f)
+{
+    printf("%f | %f | %f", f.fx, f.fy, f.fz);
+}
+
 force3_t force3_add(force3_t f1, force3_t f2)
 {
     return LINEAR_COMBINATION(f1, f2, 1.0);
@@ -46,6 +51,16 @@ force3_t force3_add(force3_t f1, force3_t f2)
 force3_t force3_sub(force3_t f1, force3_t f2)
 {
     return LINEAR_COMBINATION(f1, f2, -1.0);
+}
+
+force3_t force3_scale(force3_t f, float lambda)
+{
+    return LINEAR_COMBINATION(Force3(0.0, 0.0, 0.0), f, lambda);
+}
+
+force3_t force3_cross_product(force3_t f1, force3_t f2)
+{
+    return Force3(f1.fy * f2.fz - f1.fz * f2.fy, f1.fz * f2.fx - f1.fx * f2.fz, f1.fx * f2.fy - f1.fy * f2.fx);
 }
 
 float norme2(force3_t f)
@@ -307,6 +322,43 @@ mat4_t rotation_z_4(float theta)
     res.coefs[5] = cos(theta);
 
     return res;
+}
+
+mat4_t mat4_rotation(force3_t axe)
+{
+    float angle = norme2(axe);
+    force3_t theta = LINEAR_COMBINATION(Force3(0.0, 0.0, 0.0), axe, (1.0 / angle));
+
+    // Matrice de passage vers une nouvelle base dans laquelle theta est le nouvel axe Ox
+    float d = sqrtf(theta.fx * theta.fx + theta.fy * theta.fy);
+    mat4_t P = mat4_id_t();
+    P.coefs[0] = theta.fx;
+    P.coefs[1] = theta.fy;
+    P.coefs[2] = theta.fz;
+    P.coefs[4] = -theta.fy / d;
+    P.coefs[5] = theta.fx / d;
+    P.coefs[6] = 0.0;
+    P.coefs[8] = -theta.fz * P.coefs[5];
+    P.coefs[9] = theta.fz * P.coefs[4];
+    P.coefs[10] = theta.fx * P.coefs[5] - theta.fy * P.coefs[4];
+
+    mat4_t P_T = mat4_transpose(P);
+
+    mat4_t test = mat4_produit(P, P_T);
+    mat4_t id = mat4_id_t();
+    for (int i = 0; i < 4; i++)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+            if (fabs(test.coefs[4 * i + j] - id.coefs[4 * i + j]) > 0.0001)
+            {
+                printf("MAUVAIS CHANGEMENT DE BASE !!\n");
+                return mat4_id_t();
+            }
+        }
+    }
+
+    return mat4_produit(P_T, mat4_produit(rotation_x_4(angle), P));
 }
 
 void mat4_set_theta_x(mat4_p m, const float theta)

@@ -26,6 +26,7 @@ typedef struct controller_kinematics
     force3_t theta;
     // Vitesse angulaire (rd/s) autour de chaque axe (x,y,z)
     force3_t omega;
+    force3_t old_omega;
 
     // Si cet objet est une boule, cet attribut est son rayon. Sinon, vaut 0
     // En fait on va essentiellement gérer des boules, pas d'autres objets complexes
@@ -36,6 +37,8 @@ typedef struct controller_kinematics
     // Et on est certains de ne jamais appliquer plus de 10 forces instantanées au même moment à un même objet
     int nb_forces;
     force3_t forces[NB_MAX_FORCES];
+    // OM[i] := point d'application de forces[i] (utile pour le TMC)
+    force3_t contact[NB_MAX_FORCES];
 } controller_kinematics_t, *controller_kinematics_p;
 
 #include "physics_manager.h"
@@ -46,7 +49,7 @@ controller_kinematics_p Controller_kinematics(float __mass, force3_t initial_pos
 // Destructeur
 void controller_kinematics_free(controller_kinematics_p this);
 
-// Ajoute la force de vecteur f à la liste de forces s'appliquant à cet objet
-void controller_kinematics_add_force(controller_kinematics_p this, force3_t f);
+// Ajoute la force de vecteur f et de point d'application om à la liste de forces s'appliquant à cet objet
+void controller_kinematics_add_force(controller_kinematics_p this, force3_t f, force3_t c);
 
 #endif

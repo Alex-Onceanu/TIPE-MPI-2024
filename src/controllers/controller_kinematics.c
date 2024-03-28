@@ -13,15 +13,18 @@ void controller_kinematics_update(controller_p __this)
     controller_kinematics_p this = (controller_kinematics_p)__this;
 
     // Somme vectorielle des forces extérieures s'appliquant à l'objet
-    force3_t resultante = {0.0, 0.0, 0.0};
+    force3_t resultante = Force3(0.0, 0.0, 0.0);
+    force3_t moment_total = Force3(0.0, 0.0, 0.0);
+    force3_t OM;
     for (int i = 0; i < this->nb_forces; i++)
     {
-        resultante.fx += this->forces[i].fx;
-        resultante.fy += this->forces[i].fy;
-        resultante.fz += this->forces[i].fz;
+        resultante = force3_add(resultante, this->forces[i]);
 
-        // Puis on enleve cette force de la liste des forces que subit l'objet
-        this->forces[i] = Force3(0.0, 0.0, 0.0);
+        OM = force3_sub(this->contact[i], this->pos);
+        // On ajoute pas cette force au moment si son point d'application est O
+        if (SQ_NORME2(OM) > 0.0001)
+            // Moment = OM ^ F
+            moment_total = force3_add(moment_total, force3_cross_product(OM, this->forces[i]));
     }
     this->nb_forces = 0;
 
@@ -31,20 +34,26 @@ void controller_kinematics_update(controller_p __this)
 
     // PFD : on obtient une accélération à partir de la résultante des forces que subit l'objet
     // m * a = somme des forces et a = dv/dt donc dv = somme des forces * dt / m
-    this->speed.fx += resultante.fx * dt / this->mass;
-    this->speed.fy += resultante.fy * dt / this->mass;
-    this->speed.fz += resultante.fz * dt / this->mass;
+    this->speed = LINEAR_COMBINATION(this->speed, resultante, (dt / this->mass));
 
-    this->pos.fx += this->speed.fx * dt;
-    this->pos.fy += this->speed.fy * dt;
-    this->pos.fz += this->speed.fz * dt;
+    // On intègre speed : pos = somme des speed * dt (méthode d'Euler)
+    this->pos = LINEAR_COMBINATION(this->pos, this->speed, dt);
 
-    // Appliquer un TMC pour obtenir l'accélération angulaire ?
-    // Pas la peine, les boules sont lisses
+    // TMC : on obtient une accélération angulaire à partir de la somme des moments des forces s'appliquant à cet objet
+    // m dw/dt = somme des OM ^ F donc dw = somme des OM ^ F * dt / m
 
-    this->theta.fx += this->omega.fx * dt;
-    this->theta.fy += this->omega.fy * dt;
-    this->theta.fz += this->omega.fz * dt;
+    this->old_omega = this->omega;
+    this->omega = LINEAR_COMBINATION(this->omega, moment_total, -(dt / this->mass));
+
+    // On intègre omega : theta = somme des omega * dt (méthode d'Euler)
+    this->theta = LINEAR_COMBINATION(this->theta, this->omega, dt);
+
+    // float Ep = this->mass * GRAVITY * this->pos.fy;
+    // float Ec = 0.5 * this->mass * SQ_NORME2(this->speed);
+    // float Em = Ec + Ep;
+
+    // if (this->radius > 0.3)
+    //     printf("Ec : %f | Ep : %f | Em : %f\n", Ec, Ep, Em);
 
     // printf("speed = %f %f %f, old_speed = %f %f %f\n", this->speed.fx, this->speed.fy, this->speed.fz, this->old_speed.fx, this->old_speed.fy, this->old_speed.fz);
 }
@@ -57,7 +66,8 @@ void controller_kinematics_draw(controller_p __this)
     // En fait il va juste subir la translation qui l'emmene de (0,0,0) à sa position actuelle
     mat4_t tr = translation(this->pos.fx, this->pos.fy, this->pos.fz);
     // rotation est la matrice de transformation de l'ensemble des rotations (donc produit pour tous les axes)
-    mat4_t rotation = mat4_produit(rotation_x_4(this->theta.fx), mat4_produit(rotation_y_4(this->theta.fy), rotation_z_4(this->theta.fz)));
+    // mat4_t rotation = mat4_produit(rotation_x_4(this->theta.fx), mat4_produit(rotation_y_4(this->theta.fy), rotation_z_4(this->theta.fz)));
+    mat4_t rotation = this->radius == 0.0 ? mat4_id_t() : mat4_rotation(this->theta);
 
     unsigned int program = PROGRAM_ID[this->super.program_index];
     glUseProgram(program);
@@ -95,6 +105,7 @@ controller_kinematics_p Controller_kinematics(float __mass, force3_t initial_pos
 
     this->theta = initial_theta;
     this->omega = Force3(0.0, 0.0, 0.0);
+    this->old_omega = Force3(0.0, 0.0, 0.0);
 
     this->nb_forces = 0;
 
@@ -116,7 +127,8 @@ void controller_kinematics_free(controller_kinematics_p this)
     free(this);
 }
 
-void controller_kinematics_add_force(controller_kinematics_p this, force3_t f)
+void controller_kinematics_add_force(controller_kinematics_p this, force3_t f, force3_t c)
 {
+    this->contact[this->nb_forces] = c;
     this->forces[this->nb_forces++] = f;
 }

@@ -19,10 +19,14 @@ varying vec3 v_Color;
 varying vec3 v_Normal;
 varying vec3 v_FragPos;
 varying vec3 v_CenterWorldPos;
+varying vec3 v_LocalPos;
 
 
 
 void main() {
+    float frag_theta = atan(v_LocalPos.y / v_LocalPos.x);
+    float frag_phi = acos(v_LocalPos.z);
+
     vec3 light_dir = normalize(v_FragPos - u_Light);
     vec3 view_dir = normalize(v_FragPos - u_CameraPos);
 
@@ -41,6 +45,13 @@ void main() {
     float ground_blend = smoothstep(0.1, -0.1, -frag_to_sky.y);
     sky_color = sky_color * ground_blend + (1.0 - ground_blend) * vec3(0.83137, 0.72549, 0.588235);
 
-    float reflectivity = 0.2;
-    gl_FragColor = vec4(((1.0 - reflectivity) * v_Color + reflectivity * sky_color) * lightColor * (u_Material.ambient * ambientIntensity + diffuse * u_Material.diffuse + specular * u_Material.specular), 1.0);
+    if(fract(frag_phi) <= 0.1 || fract(frag_theta) <= 0.1)
+    {
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    }
+    else
+    {
+        float reflectivity = 0.2;
+        gl_FragColor = vec4(((1.0 - reflectivity) * v_Color + reflectivity * sky_color) * lightColor * (u_Material.ambient * ambientIntensity + diffuse * u_Material.diffuse + specular * u_Material.specular), 1.0);
+    }
 }

@@ -3,6 +3,7 @@
 
 #include "controller.h"
 #include "../tools/vector.h"
+#include "../tools/hashtable.h"
 
 extern const double TARGET_TIME;
 extern double old_time;
@@ -21,13 +22,14 @@ typedef struct physics_manager
     // C'est uniquement sur les controlleurs de ce vecteur que pourra influer le manager
     // (donc leur ajouter des forces, gérer leurs collisions...)
     vector_p kinematic_controllers;
+
+    // Dictionnaire de couples de boules qui sont actuellement en collision
+    // C'est un (string * int) Hashtabl.t, associe a chaque couple un "cooldown" en nb de frames restantes
+    DICT *colliding;
 } physics_manager_t, *physics_manager_p;
 
 // Constructeur
 physics_manager_p Physics_manager();
-
-
-
 
 #include "controller_kinematics.h"
 

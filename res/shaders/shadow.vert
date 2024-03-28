@@ -23,12 +23,12 @@ void main() {
     float floor_height = -0.98;
     
     v_Color = a_Color;
-    v_Normal = vec3(vec4(a_Normal, 1.0) * (-u_Rotation));
+    v_Normal = vec3(vec4(a_Normal, 1.0));
     v_FragPos = vec3(a_Position.x, floor_height, a_Position.z);
     v_Light = u_Light;
 
 
-    vec3 obj_center = vec3(vec4(0.0, 0.0, 0.0, 1.0) * (u_Rotation * u_Translation));
+    vec3 obj_center = vec3(vec4(0.0, 0.0, 0.0, 1.0) * (u_Translation));
     v_ObjY = obj_center.y - floor_height;
     v_CenterWorldPos = obj_center.xyz;
 
@@ -51,7 +51,7 @@ void main() {
                                     -sin_theta,  0.0, cos_theta,            0.0,
                                      0.0,        0.0, 0.0,                  1.0);
 
-        vec4 frag_world_pos = vec4(v_Xscale * a_Position.x, a_Position.y, a_Position.z, 1.0) * shadow_transform * (u_Rotation * u_Translation);
+        vec4 frag_world_pos = vec4(v_Xscale * a_Position.x, a_Position.y, a_Position.z, 1.0) * shadow_transform * (u_Translation);
             
         // frag_world_pos_floor c'est la position du fragment projetée orthogonalement sur le sol
         vec4 frag_world_pos_floor = vec4(frag_world_pos.x, floor_height, frag_world_pos.z, frag_world_pos.w);
@@ -62,7 +62,7 @@ void main() {
     }
     else
     {
-        vec4 frag_world_pos = vec4(a_Position.x, a_Position.y, a_Position.z, 1.0) * (u_Rotation * u_Translation);
+        vec4 frag_world_pos = vec4(a_Position.x, a_Position.y, a_Position.z, 1.0) * (u_Translation);
         v_Xscale = 1.0;
         v_FragWorldPos = vec3(frag_world_pos.x, floor_height, frag_world_pos.z);
         gl_Position = vec4(v_FragWorldPos.xyz, 1.0) * u_View * u_Proj;

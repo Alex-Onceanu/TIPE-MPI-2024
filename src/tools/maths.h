@@ -29,12 +29,15 @@ typedef struct
 // Constructeur (mais sur la pile)
 force3_t Force3(float __fx, float __fy, float __fz);
 
+void force3_print(force3_t f);
+
 // Combinaison linéaire, renvoie f1 + λ * f2
 #define LINEAR_COMBINATION(f1, f2, lambda) Force3(f1.fx + lambda * f2.fx, f1.fy + lambda * f2.fy, f1.fz + lambda * f2.fz)
 
 // Opérateurs + et - pour des forces
 force3_t force3_add(force3_t f1, force3_t f2);
 force3_t force3_sub(force3_t f1, force3_t f2);
+force3_t force3_scale(force3_t f, float lambda);
 
 #define SQ_NORME2(f) (f.fx * f.fx + f.fy * f.fy + f.fz * f.fz)
 
@@ -45,6 +48,8 @@ float norme2(force3_t f);
 void normalize(force3_p f);
 
 #define DOT_PRODUCT(u, v) (u.fx * v.fx + u.fy * v.fy + u.fz * v.fz)
+
+force3_t force3_cross_product(force3_t f1, force3_t f2);
 
 // Renvoie u.v, donc u.x v.x + u.y v.y + u.z v.z
 // float produit_scalaire(force3_t u, force3_t v);
@@ -119,6 +124,9 @@ mat4_t rotation_y_4(float theta);
 // Matrice de rotation autour de l'axe z d'angle theta en rd, en dimension 3
 // Renvoie une matrice de taille 4 * 4
 mat4_t rotation_z_4(float theta);
+
+// Renvoie la matrice de rotation autour de l'axe Vect(theta), d'angle || theta ||
+mat4_t mat4_rotation(force3_t theta);
 
 // Change inplace la valeur theta d'une matrice de rotation autour de l'axe x
 void mat4_set_theta_x(mat4_p m, const float theta);
