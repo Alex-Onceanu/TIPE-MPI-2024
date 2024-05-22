@@ -126,7 +126,8 @@ mat4_t rotation_y_4(float theta);
 mat4_t rotation_z_4(float theta);
 
 // Renvoie la matrice de rotation autour de l'axe Vect(theta), d'angle || theta ||
-mat4_t mat4_rotation(force3_t theta);
+// Stocke dans passage (si non NULL) la matrice de passage vers une base dans laquelle theta est le nouvel axe Ox
+mat4_t mat4_rotation(force3_t theta, mat4_t* passage);
 
 // Change inplace la valeur theta d'une matrice de rotation autour de l'axe x
 void mat4_set_theta_x(mat4_p m, const float theta);

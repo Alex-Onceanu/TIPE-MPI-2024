@@ -10,6 +10,9 @@ struct Material {
 
 uniform vec3 u_CameraPos;
 uniform Material u_Material;
+uniform vec3 u_LightColor;
+
+uniform float u_AmbientIntensity;
 
 varying vec3 v_Color;
 varying vec3 v_Normal;
@@ -31,7 +34,6 @@ float smoothmax(float a, float b, float k)
 void main() {
     vec3 lightDir = normalize(v_FragPos - v_Light);
 
-    vec3 lightColor = vec3(1.0, 1.0, 1.0);
     float ambientIntensity = 1.0;
 
     float diffuse = max(v_Normal.x * lightDir.x + v_Normal.y * lightDir.y + v_Normal.z * lightDir.z, 0.0);
@@ -45,7 +47,6 @@ void main() {
     float drop_shadow = (smoothstep(0.0, 1.0, 4.0 / v_Xscale)) * (1.0 - smoothstep(smooth_edges, 1.0, v_FragPos.x * v_FragPos.x + v_FragPos.z * v_FragPos.z));
     float ortho_shadow = 1.0 - smoothstep(smooth_edges, 1.0, length(v_FragWorldPos.xz - v_CenterWorldPos.xz));
     float is_frag_transparent = smoothstep(0.1, 1.0, smoothmax(drop_shadow, ortho_shadow, smooth_edges));
-    // float is_frag_transparent = 1.0;
     
-    gl_FragColor = vec4(v_Color * lightColor * (u_Material.ambient * ambientIntensity + diffuse * u_Material.diffuse + specular * u_Material.specular), 0.4 * smoothstep(0.0, 1.0, 3.0 / v_ObjY) * is_frag_transparent);
+    gl_FragColor = vec4(v_Color * u_LightColor * (u_Material.ambient * u_AmbientIntensity + diffuse * u_Material.diffuse + specular * u_Material.specular), 0.4 * smoothstep(0.0, 1.0, 3.0 / v_ObjY) * is_frag_transparent);
 }

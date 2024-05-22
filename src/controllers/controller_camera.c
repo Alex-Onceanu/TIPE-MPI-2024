@@ -75,30 +75,6 @@ void controller_camera_process_input(controller_p this, void *data)
         case SHIFT_UP:
             this2->v_y = 0.0;
             break;
-        case UP_ARROW_UP:
-            this2->w_x = 0.0;
-            break;
-        case UP_ARROW_DOWN:
-            this2->w_x = this2->w;
-            break;
-        case DOWN_ARROW_UP:
-            this2->w_x = 0.0;
-            break;
-        case DOWN_ARROW_DOWN:
-            this2->w_x = -this2->w;
-            break;
-        case LEFT_ARROW_UP:
-            this2->w_y = 0.0;
-            break;
-        case LEFT_ARROW_DOWN:
-            this2->w_y = this2->w;
-            break;
-        case RIGHT_ARROW_UP:
-            this2->w_y = 0.0;
-            break;
-        case RIGHT_ARROW_DOWN:
-            this2->w_y = -this2->w;
-            break;
         default:
             break;
         }

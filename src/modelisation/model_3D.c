@@ -295,6 +295,20 @@ void model_3D_draw(model_3D_t this, materiau_t materiau, unsigned int program_in
     int u_shininess = glGetUniformLocation(program, "u_Material.shininess");
     glUniform1f(u_shininess, materiau.shininess);
 
+    // Lumière : c'est une position, une couleur et une intensité de lumière ambientale.
+    int u_Light = glGetUniformLocation(program, "u_Light");
+    glUniform3f(u_Light, SUN_X, SUN_Y, SUN_Z);
+    int u_LightColor = glGetUniformLocation(program, "u_LightColor");
+    glUniform3f(u_LightColor, LIGHT_COLOR[0], LIGHT_COLOR[1], LIGHT_COLOR[2]);
+    int u_AmbientIntensity = glGetUniformLocation(program, "u_AmbientIntensity");
+    glUniform1f(u_AmbientIntensity, AMBIENT_INTENSITY);
+    
+    if(program_index == COLOR_PROGRAM)
+    {
+        int u_Reflectivity = glGetUniformLocation(program, "u_Reflectivity");
+        glUniform1f(u_Reflectivity, BALL_REFLECTIVITY);
+    }
+
     
     if(NB_INDEX_PER_BUFFER[this.model_id] > 0)
     {

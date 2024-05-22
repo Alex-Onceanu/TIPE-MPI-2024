@@ -1,10 +1,11 @@
+#include <GLES3/gl3.h>
+#include <emscripten/html5.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
-
-#include <GLES3/gl3.h>
-#include <emscripten/html5.h>
+#include <stdbool.h>
 
 #include "modelisation/init.h"
 #include "tools/maths.h"
@@ -27,6 +28,20 @@ float SUN_X = SUN_X_0;
 float SUN_Y = SUN_Y_0;
 float SUN_Z = SUN_Z_0;
 
+float LIGHT_COLOR[3] = { 1.0,1.0,1.0 };
+float AMBIENT_INTENSITY = 1.0;
+float BALL_REFLECTIVITY = BALL_REFLECTIVITY_0;
+bool SHOULD_RENDER_AXIS = false;
+
+float GRAVITY = GRAVITY_0;
+float FLUID_MU = FLUID_MU_0;
+float SOLID_STATIC_MU = SOLID_STATIC_MU_0;
+float SOLID_DYNAMIC_MU = SOLID_DYNAMIC_MU_0;
+float ROTATION_STATIC_MU = ROTATION_STATIC_MU_0;
+float ROTATION_DYNAMIC_MU = ROTATION_DYNAMIC_MU_0;
+float THROW_SPEED = THROW_SPEED_0;
+float THROW_ANGLE = THROW_ANGLE_0;
+float BALL_MASS = BALL_MASS_0;
 
 // Affiche les erreurs de shader et OpenGL
 void debug()
@@ -45,47 +60,50 @@ void debug()
 world_p world;
 
 double old_time = 0.0;
-double time_between_frames = 0.0; // en ms
-const double TARGET_TIME = 1.0 / FPS;
-double dt = 1.0;
+const double TARGET_DT = 1.0 / FPS;
+double dt = TARGET_DT; // en s
+
+void update_dt(double time)
+{
+    dt = time - old_time;
+    old_time = time;
+    
+    dt *= FPS;
+
+    if(dt > 10.0)
+    {
+        // Pour ne pas avoir d'explosion surprise..
+        dt = 1.0;
+    }
+    
+    // printf("dt = %f\n", dt);
+}
 
 // Une seule itération de la boucle principale
 // Cette fonction est appelée 60 fois par seconde, correspond à 1 frame
 EM_BOOL mainloop(double time, void *userData)
 {
-    time_between_frames = time - old_time;
-    old_time = time;
-    // printf("%f\n", time_between_frames);
-    if (time_between_frames < TARGET_TIME)
-    {
-        sleep((unsigned int)(TARGET_TIME - time_between_frames));
-    }
+    update_dt(time / 1000.0); // pour que time soit en secondes
 
-    // Process input
+    // Process input : gérer l'entrée utilisateur
     world_process_input(world);
 
-    // Update
+    // Update : passer de l'état (t) à l'état (t + dt)
     world_update(world);
 
-    // Clear
-    glClearColor(0.278, 0.592, 0.792, 1.0);
-    // glClearColor(0.0, 0.0, 0.0, 1.0);
-    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Draw
+    // Draw : rendu de la scène à l'état actuel
     world_draw(world);
 
-    // debug();
+    debug();
+
     return EM_TRUE;
 }
 
 int main()
 {
     srand(time(NULL));
-    // init s'occupe de toutes les initialisations uniques nécessaires
+    // init s'occupe de toutes les initialisations uniques nécessaires (compiler les shaders, charger les modèles 3D..)
     init();
-    // init_texture s'occupe des initialisations liees aux textures...
-    // init_texture(PROGRAM_ID);
 
     glEnable(GL_DEPTH_TEST);
     // Éviter le Z-fighting
@@ -98,10 +116,6 @@ int main()
     {
         glUseProgram(PROGRAM_ID[i]);
 
-        // Lumière : c'est une position (constante ici). La direction est déterminée dans le fragment shader.
-        int u_Light = glGetUniformLocation(PROGRAM_ID[i], "u_Light");
-        glUniform3f(u_Light, SUN_X, SUN_Y, SUN_Z);
-
         // Matrice projection, reste constante donc autant la faire maintenant
         mat4_t proj = projection();
         int u_Proj = glGetUniformLocation(PROGRAM_ID[i], "u_Proj");
@@ -109,16 +123,12 @@ int main()
     }
 
     // Instanciation de world (instance principale)
-    // Sera parametre de mainloop sous forme de void*
     world = world_init();
-
-    debug();
 
     // Le mainloop est ici
     emscripten_request_animation_frame_loop(mainloop, NULL);
 
     //  ??? Comment free sur emscripten ? Ou le placer dans le destructeur de World ?
-    // glDeleteProgram(PROGRAM_ID);
 
     return 0;
 }
@@ -142,46 +152,6 @@ void mouse_down()
 void mouse_up()
 {
     world_add_event(world, UserEvent(CLICK_UP, NULL));
-}
-
-void ar_up()
-{
-    world_add_event(world, UserEvent(RIGHT_ARROW_UP, NULL));
-}
-
-void ar_down()
-{
-    world_add_event(world, UserEvent(RIGHT_ARROW_DOWN, NULL));
-}
-
-void al_up()
-{
-    world_add_event(world, UserEvent(LEFT_ARROW_UP, NULL));
-}
-
-void al_down()
-{
-    world_add_event(world, UserEvent(LEFT_ARROW_DOWN, NULL));
-}
-
-void au_up()
-{
-    world_add_event(world, UserEvent(UP_ARROW_UP, NULL));
-}
-
-void au_down()
-{
-    world_add_event(world, UserEvent(UP_ARROW_DOWN, NULL));
-}
-
-void ad_up()
-{
-    world_add_event(world, UserEvent(DOWN_ARROW_UP, NULL));
-}
-
-void ad_down()
-{
-    world_add_event(world, UserEvent(DOWN_ARROW_DOWN, NULL));
 }
 
 void w_up()
@@ -252,4 +222,79 @@ void shift_up()
 void shift_down()
 {
     world_add_event(world, UserEvent(SHIFT_DOWN, NULL));
+}
+
+void c_gravity(float e)
+{
+    GRAVITY = e;
+}
+
+void c_fluid_mu(float e)
+{
+    FLUID_MU = e;
+}
+
+void c_solid_static_mu(float e)
+{
+    SOLID_STATIC_MU = e;
+}
+
+void c_solid_dynamic_mu(float e)
+{
+    SOLID_DYNAMIC_MU = e;
+}
+
+void c_rotation_static_mu(float e)
+{
+    ROTATION_STATIC_MU = e;
+}
+
+void c_rotation_dynamic_mu(float e)
+{
+    ROTATION_DYNAMIC_MU = e;
+}
+
+void c_ball_mass(float e)
+{
+    BALL_MASS = e;
+}
+
+void c_throw_speed(float e)
+{
+    THROW_SPEED = e;
+}
+
+void c_throw_angle(float e)
+{
+    THROW_ANGLE = e;
+}
+
+void c_light_color_r(float e)
+{
+    LIGHT_COLOR[0] = e;
+}
+
+void c_light_color_g(float e)
+{
+    LIGHT_COLOR[1] = e;
+}
+
+void c_light_color_b(float e)
+{
+    LIGHT_COLOR[2] = e;
+}
+
+void c_ambient_intensity(float e)
+{
+    AMBIENT_INTENSITY = e;
+}
+
+void c_ball_reflectivity(float e)
+{
+    BALL_REFLECTIVITY = e;
+}
+
+void toggle_should_render_axis()
+{
+    SHOULD_RENDER_AXIS = !SHOULD_RENDER_AXIS;
 }

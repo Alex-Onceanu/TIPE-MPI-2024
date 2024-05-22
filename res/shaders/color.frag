@@ -15,6 +15,9 @@ uniform Material u_Material;
 
 uniform samplerCube u_Cubemap;
 
+uniform float u_AmbientIntensity;
+uniform float u_Reflectivity;
+
 varying vec3 v_Color;
 varying vec3 v_Normal;
 varying vec3 v_FragPos;
@@ -29,9 +32,6 @@ void main() {
 
     vec3 light_dir = normalize(v_FragPos - u_Light);
     vec3 view_dir = normalize(v_FragPos - u_CameraPos);
-
-    vec3 lightColor = vec3(0.95, 1.0, 1.0);
-    float ambientIntensity = 1.0;
 
     float diffuse = max(v_Normal.x * light_dir.x + v_Normal.y * light_dir.y + v_Normal.z * light_dir.z, 0.0);
 
@@ -51,7 +51,6 @@ void main() {
     }
     else
     {
-        float reflectivity = 0.2;
-        gl_FragColor = vec4(((1.0 - reflectivity) * v_Color + reflectivity * sky_color) * lightColor * (u_Material.ambient * ambientIntensity + diffuse * u_Material.diffuse + specular * u_Material.specular), 1.0);
+        gl_FragColor = vec4(((1.0 - u_Reflectivity) * v_Color + u_Reflectivity * sky_color) * u_LightColor * (u_Material.ambient * u_AmbientIntensity + diffuse * u_Material.diffuse + specular * u_Material.specular), 1.0);
     }
 }

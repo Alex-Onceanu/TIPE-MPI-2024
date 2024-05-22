@@ -19,7 +19,6 @@ function clamp(pos, min_x, max_x, min_y, max_y) {
     }
 }
 
-
 onmousedown = function (e) {
     if (!finished_loading) return;
     Module.ccall('mouse_down');
@@ -65,18 +64,18 @@ document.addEventListener('keydown', (event) => {
         case 'KeyE':
             Module.ccall('e_down');
             break;
-        // case 'ArrowRight':
-        //     Module.ccall('ar_down');
-        //     break;
-        // case 'ArrowLeft':
-        //     Module.ccall('al_down');
-        //     break;
-        // case 'ArrowUp':
-        //     Module.ccall('au_down');
-        //     break;
-        // case 'ArrowDown':
-        //     Module.ccall('ad_down');
-        //     break;
+        case 'ArrowRight':
+            Module.ccall('d_down');
+            break;
+        case 'ArrowLeft':
+            Module.ccall('a_down');
+            break;
+        case 'ArrowUp':
+            Module.ccall('w_down');
+            break;
+        case 'ArrowDown':
+            Module.ccall('s_down');
+            break;
         case 'Space':
             Module.ccall('space_down');
             break;
@@ -110,18 +109,18 @@ document.addEventListener('keyup', (event) => {
         case 'KeyE':
             Module.ccall('e_up');
             break;
-        // case 'ArrowRight':
-        //     Module.ccall('ar_up');
-        //     break;
-        // case 'ArrowLeft':
-        //     Module.ccall('al_up');
-        //     break;
-        // case 'ArrowUp':
-        //     Module.ccall('au_up');
-        //     break;
-        // case 'ArrowDown':
-        //     Module.ccall('ad_up');
-        //     break;
+        case 'ArrowRight':
+            Module.ccall('d_up');
+            break;
+        case 'ArrowLeft':
+            Module.ccall('a_up');
+            break;
+        case 'ArrowUp':
+            Module.ccall('w_up');
+            break;
+        case 'ArrowDown':
+            Module.ccall('s_up');
+            break;
         case 'Space':
             Module.ccall('space_up');
             break;
@@ -135,3 +134,80 @@ document.addEventListener('keyup', (event) => {
             break;
     }
 }, false);
+
+
+function c_gravity(e) {
+    if (!finished_loading) return;
+    console.log("g = ", e / 600.0);
+    Module.ccall('c_gravity', null, ['number'], [e / 600.0])
+}
+
+function c_fluid_mu(e) {
+    if (!finished_loading) return;
+    Module.ccall('c_fluid_mu', null, ['number'], [e / 6000.0])
+}
+
+function c_solid_static_mu(e) {
+    if (!finished_loading) return;
+    Module.ccall('c_gravity', null, ['number'], [e / 60.0])
+}
+
+function c_solid_dynamic_mu(e) {
+    if (!finished_loading) return;
+    Module.ccall('c_gravity', null, ['number'], [e / 60.0])
+}
+
+function c_rotation_static_mu(e) {
+    if (!finished_loading) return;
+    Module.ccall('c_gravity', null, ['number'], [e / 6000.0])
+}
+
+function c_rotation_dynamic_mu(e) {
+    if (!finished_loading) return;
+    Module.ccall('c_gravity', null, ['number'], [e / 600.0])
+}
+
+function c_ball_mass(e) {
+    if (!finished_loading) return;
+    Module.ccall('c_ball_mass', null, ['number'], [e / 100.0])
+}
+
+function c_throw_speed(e) {
+    if (!finished_loading) return;
+    Module.ccall('c_throw_speed', null, ['number'], [e / 10.0])
+}
+
+function c_throw_angle(e) {
+    if (!finished_loading) return;
+    Module.ccall('c_throw_angle', null, ['number'], [e * 3.14159 / 180.0])
+}
+
+function c_light_color_r(e) {
+    if (!finished_loading) return;
+    Module.ccall('c_light_color_r', null, ['number'], [e / 255.0])
+}
+
+function c_light_color_g(e) {
+    if (!finished_loading) return;
+    Module.ccall('c_light_color_g', null, ['number'], [e / 255.0])
+}
+
+function c_light_color_b(e) {
+    if (!finished_loading) return;
+    Module.ccall('c_light_color_b', null, ['number'], [e / 255.0])
+}
+
+function c_ambient_intensity(e) {
+    if (!finished_loading) return;
+    Module.ccall('c_ambient_intensity', null, ['number'], [e / 100.0])
+}
+
+function c_reflectivity(e) {
+    if (!finished_loading) return;
+    Module.ccall('c_ball_reflectivity', null, ['number'], [e / 100.0])
+}
+
+function toggle_should_render_axis() {
+    if (!finished_loading) return;
+    Module.ccall('toggle_should_render_axis', null, null, [])
+}

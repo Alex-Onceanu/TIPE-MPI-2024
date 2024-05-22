@@ -4,7 +4,7 @@
 make: ./src/
 	emcc \
 		-o main.js $(shell find ./src -name '*.c') \
-		-s EXPORTED_FUNCTIONS="['_main','_mouse_move','_mouse_up','_mouse_down','_w_up','_w_down','_a_up','_a_down','_s_up','_s_down','_d_up','_d_down','_e_up','_e_down','_au_up','_au_down','_ad_up','_ad_down','_ar_up','_ar_down','_al_up','_al_down','_space_up','_space_down','_shift_up','_shift_down']" \
+		-s EXPORTED_FUNCTIONS="['_main','_mouse_move','_mouse_up','_mouse_down','_w_up','_w_down','_a_up','_a_down','_s_up','_s_down','_d_up','_d_down','_e_up','_e_down','_space_up','_space_down','_shift_up','_shift_down','_c_gravity','_c_fluid_mu','_c_solid_static_mu','_c_solid_dynamic_mu','_c_rotation_static_mu','_c_rotation_dynamic_mu','_c_ball_mass','_c_throw_speed','_c_throw_angle','_c_light_color_r','_c_light_color_g','_c_light_color_b','_c_ambient_intensity','_c_ball_reflectivity','_toggle_should_render_axis']" \
 		-s EXPORTED_RUNTIME_METHODS=["ccall"] \
 		-s MAX_WEBGL_VERSION=3 \
 		-s MIN_WEBGL_VERSION=3 \

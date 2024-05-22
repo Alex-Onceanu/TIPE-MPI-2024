@@ -10,7 +10,12 @@ void controller_solid_draw(controller_p this)
     model_3D_draw(this2->model, this2->materiau, controller_get_program_id(&this2->super));
     if (this2->model.model_id == SPHERE_BIG_BUF)
     {
-        model_3D_draw((model_3D_t){SHADOW_BUF, NO_TEXTURE}, this2->materiau, SHADOW_PROGRAM);
+        model_3D_draw((model_3D_t){SHADOW_BUF, NO_TEXTURE}, Materiau(SOLEIL), SHADOW_PROGRAM);
+
+        if(SHOULD_RENDER_AXIS)
+        {
+            model_3D_draw((model_3D_t){AXIS_BUF, NO_TEXTURE}, Materiau(SOLEIL), AXIS_PROGRAM);
+        }
     }
 }
 

@@ -324,9 +324,16 @@ mat4_t rotation_z_4(float theta)
     return res;
 }
 
-mat4_t mat4_rotation(force3_t axe)
+mat4_t mat4_rotation(force3_t axe, mat4_t* passage)
 {
     float angle = norme2(axe);
+
+    if(angle <= 0.000001)
+    {
+        *passage = mat4_id_t();
+        return mat4_id_t();
+    }
+
     force3_t theta = LINEAR_COMBINATION(Force3(0.0, 0.0, 0.0), axe, (1.0 / angle));
 
     // Matrice de passage vers une nouvelle base dans laquelle theta est le nouvel axe Ox
@@ -342,21 +349,24 @@ mat4_t mat4_rotation(force3_t axe)
     P.coefs[9] = theta.fz * P.coefs[4];
     P.coefs[10] = theta.fx * P.coefs[5] - theta.fy * P.coefs[4];
 
+    if(passage != NULL) 
+        *passage = P;
+
     mat4_t P_T = mat4_transpose(P);
 
-    mat4_t test = mat4_produit(P, P_T);
-    mat4_t id = mat4_id_t();
-    for (int i = 0; i < 4; i++)
-    {
-        for (int j = 0; j < 4; j++)
-        {
-            if (fabs(test.coefs[4 * i + j] - id.coefs[4 * i + j]) > 0.0001)
-            {
-                printf("MAUVAIS CHANGEMENT DE BASE !!\n");
-                return mat4_id_t();
-            }
-        }
-    }
+    // mat4_t test = mat4_produit(P, P_T);
+    // mat4_t id = mat4_id_t();
+    // for (int i = 0; i < 4; i++)
+    // {
+    //     for (int j = 0; j < 4; j++)
+    //     {
+    //         if (fabs(test.coefs[4 * i + j] - id.coefs[4 * i + j]) > 0.0001)
+    //         {
+    //             printf("MAUVAIS CHANGEMENT DE BASE !!\n");
+    //             return mat4_id_t();
+    //         }
+    //     }
+    // }
 
     return mat4_produit(P_T, mat4_produit(rotation_x_4(angle), P));
 }

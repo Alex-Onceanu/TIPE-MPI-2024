@@ -49,7 +49,7 @@ world_p world_init()
 
     {
         // Le sol est un pavé
-        entity_p sol = Entity(CHECKERBOARD_PROGRAM);
+        entity_p sol = Entity(GROUND_PROGRAM);
         controller_kinematics_p c1 = Controller_kinematics(1000000.0, Force3(0.0, -2.0, 0.0), Force3(0.0, 0.0, 0.0), NULL);
 
         // model_3D_p pav3d = Pave(600.0, 2.0, 600.0, 0.44, 0.401, 0.3313, NULL);
@@ -99,27 +99,20 @@ void world_add_event(world_p this, user_event_t e_t)
 void lance_boule(world_p this)
 {
     entity_p e = Entity(COLOR_PROGRAM);
-    // masse réelle d'une boule de petanque : 0,730 kg
     // const float mass = 0.5 + (rand() % 4) * 0.5;
-    const float mass = 0.73;
-    const float v0 = 1.3 / dt;
-
-    // printf("mass = %f\n", mass);
+    const float mass = BALL_MASS;
+    const float v0 = THROW_SPEED / dt;
 
     controller_kinematics_p ck = Controller_kinematics(mass,
                                                        Force3(this->camera->x + this->camera->direction_x * 10.0,
                                                               this->camera->y + this->camera->direction_y * 10.0,
                                                               this->camera->z + this->camera->direction_z * 10.0),
-                                                       //    Force3(this->camera->direction_x, this->camera->direction_y, this->camera->direction_z),
                                                        Force3(0.0, 1.0, 0.0),
                                                        this->manager);
-
-    // printf("direction : %f, %f, %f\n", this->camera->direction_x, this->camera->direction_y, this->camera->direction_z);
 
     controller_kinematics_add_force(ck, Force3(this->camera->direction_x * v0 * mass, this->camera->direction_y * v0 * mass, this->camera->direction_z * v0 * mass),
                                     ck->pos);
 
-    // model_3D_p model = Sphere(1.0, 0.3, 0.3, 0.3);
     model_3D_t model = {SPHERE_BIG_BUF, NO_TEXTURE, NO_TEXTURE};
     controller_solid_p cs = Controller_solid(model, FER);
 

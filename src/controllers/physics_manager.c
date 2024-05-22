@@ -18,18 +18,6 @@ int collision(controller_kinematics_p c1, controller_kinematics_p c2)
     return SQ_NORME2(pos_diff) < SQUARED(c1->radius + c2->radius);
 }
 
-void update_dt()
-{
-    double current_time = (double)clock() / (double)CLOCKS_PER_SEC;
-    double time_between_frames = current_time - old_time;
-    old_time = current_time;
-    if (time_between_frames > TARGET_TIME)
-    {
-        dt = time_between_frames * FPS;
-    }
-    dt = dt > 60.0 ? 1.0 : dt;
-}
-
 void apply_collision_force(controller_kinematics_p c1, controller_kinematics_p c2)
 {
     force3_t impact_direction = force3_sub(c1->pos, c2->pos);
@@ -79,8 +67,6 @@ void physics_manager_update_collisions(physics_manager_p this, int nb_controller
     force3_t impact_direction = {};
     controller_kinematics_p tmp_controller_2 = NULL;
     float m1, m2;
-
-    printf("\n");
 
     for (int i = 0; i < nb_controllers; i++)
     {
@@ -135,8 +121,6 @@ void physics_manager_update_collisions(physics_manager_p this, int nb_controller
 // C'est dans cet update que physics_manager va faire subir des forces aux controlleurs qu'il gère
 void physics_manager_update(controller_p this2)
 {
-    update_dt();
-
     physics_manager_p this = (physics_manager_p)this2;
     int nb_controllers = vector_len(this->kinematic_controllers);
     controller_kinematics_p tmp_controller = NULL;
@@ -158,13 +142,13 @@ void physics_manager_update(controller_p this2)
         float w = norme2(tmp_controller->omega);
         force3_t n_w = tmp_controller->omega;
         normalize(&n_w);
-        if (w > ROTATION_STATIC)
+        if (w > ROTATION_STATIC_MU)
         {
-            tmp_controller->omega = LINEAR_COMBINATION(tmp_controller->omega, n_w, -ROTATION_STATIC);
+            tmp_controller->omega = LINEAR_COMBINATION(tmp_controller->omega, n_w, -ROTATION_STATIC_MU);
         }
         else
         {
-            tmp_controller->omega = force3_scale(tmp_controller->omega, (1.0 - ROTATION_ATTENUATION));
+            tmp_controller->omega = force3_scale(tmp_controller->omega, (1.0 - ROTATION_DYNAMIC_MU));
         }
 
         // ELEVER LE SOL
@@ -192,8 +176,8 @@ void physics_manager_update(controller_p this2)
                 speed_direction_x = tmp_controller->speed.fx >= 0.0 ? 1.0 : -1.0;
                 speed_direction_z = tmp_controller->speed.fz >= 0.0 ? 1.0 : -1.0;
 
-                controller_kinematics_add_force(tmp_controller, Force3(v * noise_x, 0.0, v * noise_z),
-                                                tmp_controller->pos);
+                // controller_kinematics_add_force(tmp_controller, Force3(v * noise_x, 0.0, v * noise_z),
+                                                // tmp_controller->pos);
             }
 
             if (v > SOLID_STATIC_MU * tmp_controller->mass * GRAVITY)
@@ -217,7 +201,7 @@ void physics_manager_update(controller_p this2)
                 tmp_controller->speed = Force3(0.0, 0.0, 0.0);
             }
         }
-        else if (v > 0.01)
+        else if (v > 0.01 || tmp_controller->pos.fy > 0.6)
         {
             // On applique le poids uniquement si l'objet est au-dessus du sol
             controller_kinematics_add_force(tmp_controller, Force3(0.0, -tmp_controller->mass * GRAVITY, 0.0),
