@@ -147,24 +147,14 @@ function c_fluid_mu(e) {
     Module.ccall('c_fluid_mu', null, ['number'], [e / 6000.0])
 }
 
-function c_solid_static_mu(e) {
+function c_solid_mu(e) {
     if (!finished_loading) return;
-    Module.ccall('c_gravity', null, ['number'], [e / 60.0])
+    Module.ccall('c_solid_mu', null, ['number'], [e / 60.0])
 }
 
-function c_solid_dynamic_mu(e) {
+function c_rotation_mu(e) {
     if (!finished_loading) return;
-    Module.ccall('c_gravity', null, ['number'], [e / 60.0])
-}
-
-function c_rotation_static_mu(e) {
-    if (!finished_loading) return;
-    Module.ccall('c_gravity', null, ['number'], [e / 6000.0])
-}
-
-function c_rotation_dynamic_mu(e) {
-    if (!finished_loading) return;
-    Module.ccall('c_gravity', null, ['number'], [e / 600.0])
+    Module.ccall('c_rotation_mu', null, ['number'], [e / 600.0])
 }
 
 function c_ball_mass(e) {

@@ -3,7 +3,6 @@
 
 #include <stdbool.h>
 
-
 #define FPS 60
 
 extern double dt;
@@ -12,12 +11,12 @@ extern double dt;
 
 // Index des identifiants opengl des "programmes" (= 2 shaders) stockés dans PROGRAM_ID
 #define NB_PROGRAMS 5
-#define NO_PROGRAM -1           // Certaines entités n'ont pas de programme associé
-#define COLOR_PROGRAM 0         // Rendu d'objets de couleur unie
-#define SKYBOX_PROGRAM 1        // Rendu du ciel
-#define GROUND_PROGRAM 2        // Rendu du sol (sablonneux)
-#define SHADOW_PROGRAM 3        // Rendu des ombres
-#define AXIS_PROGRAM 4          // Rendu de l'axe de rotation des boules
+#define NO_PROGRAM -1    // Certaines entités n'ont pas de programme associé
+#define COLOR_PROGRAM 0  // Rendu d'objets de couleur unie
+#define SKYBOX_PROGRAM 1 // Rendu du ciel
+#define GROUND_PROGRAM 2 // Rendu du sol (sablonneux)
+#define SHADOW_PROGRAM 3 // Rendu des ombres
+#define AXIS_PROGRAM 4   // Rendu de l'axe de rotation des boules
 
 // Les constantes ci-dessus sont des indices de PROGRAM_ID
 extern unsigned int PROGRAM_ID[NB_PROGRAMS];
@@ -34,12 +33,12 @@ extern unsigned int PROGRAM_ID[NB_PROGRAMS];
 // Ils sont générés au lancement puis à chaque draw call on choisit quels buffers on veut bind
 typedef enum MODEL_TYPE
 {
-    CUBE_TEST_BUF,      // Un certain cube, pour tester..
-    SPHERE_BIG_BUF,     // Boule de pétanque
-    SPHERE_SMALL_BUF,   // Cochonnet
-    GROUND_BUF,         // Sol
-    SHADOW_BUF,         // Ombre de boule
-    AXIS_BUF            // Axe de rotation des boules
+    CUBE_TEST_BUF,    // Un certain cube, pour tester..
+    SPHERE_BIG_BUF,   // Boule de pétanque
+    SPHERE_SMALL_BUF, // Cochonnet
+    GROUND_BUF,       // Sol
+    SHADOW_BUF,       // Ombre de boule
+    AXIS_BUF          // Axe de rotation des boules
 } MODEL_TYPE_t;
 
 // L'avantage, quand on code en C, c'est qu'un enum peut être trivialement converti en unsigned int
@@ -78,23 +77,18 @@ extern bool SHOULD_RENDER_AXIS;
 
 extern float GRAVITY;
 extern float FLUID_MU;
-extern float SOLID_STATIC_MU;
-extern float SOLID_DYNAMIC_MU;
-extern float ROTATION_STATIC_MU;
-extern float ROTATION_DYNAMIC_MU;
+extern float SOLID_MU;
+extern float ROTATION_MU;
 extern float THROW_SPEED;
 extern float THROW_ANGLE;
 extern float BALL_MASS;
 
 #define GRAVITY_0 0.03
 #define FLUID_MU_0 0.006
-#define SOLID_STATIC_MU_0 0.4
-#define SOLID_DYNAMIC_MU_0 0.3
-#define ROTATION_STATIC_MU_0 0.005
-#define ROTATION_DYNAMIC_MU_0 0.04
+#define SOLID_MU_0 0.5
+#define ROTATION_MU_0 0.04
 #define THROW_SPEED_0 1.3
 #define THROW_ANGLE_0 0.0
-#define BALL_MASS_0 0.73                // masse réelle d'une boule de petanque : 0,730 kg
-
+#define BALL_MASS_0 0.73 // masse réelle d'une boule de petanque : 0,730 kg
 
 #endif

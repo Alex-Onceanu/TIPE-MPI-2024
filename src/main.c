@@ -28,17 +28,15 @@ float SUN_X = SUN_X_0;
 float SUN_Y = SUN_Y_0;
 float SUN_Z = SUN_Z_0;
 
-float LIGHT_COLOR[3] = { 1.0,1.0,1.0 };
+float LIGHT_COLOR[3] = {1.0, 1.0, 1.0};
 float AMBIENT_INTENSITY = 1.0;
 float BALL_REFLECTIVITY = BALL_REFLECTIVITY_0;
 bool SHOULD_RENDER_AXIS = false;
 
 float GRAVITY = GRAVITY_0;
 float FLUID_MU = FLUID_MU_0;
-float SOLID_STATIC_MU = SOLID_STATIC_MU_0;
-float SOLID_DYNAMIC_MU = SOLID_DYNAMIC_MU_0;
-float ROTATION_STATIC_MU = ROTATION_STATIC_MU_0;
-float ROTATION_DYNAMIC_MU = ROTATION_DYNAMIC_MU_0;
+float SOLID_MU = SOLID_MU_0;
+float ROTATION_MU = ROTATION_MU_0;
 float THROW_SPEED = THROW_SPEED_0;
 float THROW_ANGLE = THROW_ANGLE_0;
 float BALL_MASS = BALL_MASS_0;
@@ -67,15 +65,15 @@ void update_dt(double time)
 {
     dt = time - old_time;
     old_time = time;
-    
+
     dt *= FPS;
 
-    if(dt > 10.0)
+    if (dt > 10.0)
     {
         // Pour ne pas avoir d'explosion surprise..
         dt = 1.0;
     }
-    
+
     // printf("dt = %f\n", dt);
 }
 
@@ -234,24 +232,14 @@ void c_fluid_mu(float e)
     FLUID_MU = e;
 }
 
-void c_solid_static_mu(float e)
+void c_solid_mu(float e)
 {
-    SOLID_STATIC_MU = e;
+    SOLID_MU = e;
 }
 
-void c_solid_dynamic_mu(float e)
+void c_rotation_mu(float e)
 {
-    SOLID_DYNAMIC_MU = e;
-}
-
-void c_rotation_static_mu(float e)
-{
-    ROTATION_STATIC_MU = e;
-}
-
-void c_rotation_dynamic_mu(float e)
-{
-    ROTATION_DYNAMIC_MU = e;
+    ROTATION_MU = e;
 }
 
 void c_ball_mass(float e)

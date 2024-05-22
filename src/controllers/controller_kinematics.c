@@ -43,7 +43,7 @@ void controller_kinematics_update(controller_p __this)
     // m dw/dt = somme des OM ^ F donc dw = somme des OM ^ F * dt / m
 
     this->old_omega = this->omega;
-    this->omega = LINEAR_COMBINATION(this->omega, moment_total, -(dt / this->mass));
+    this->omega = LINEAR_COMBINATION(this->omega, moment_total, (dt / this->mass));
 
     // On intègre omega : theta = somme des omega * dt (méthode d'Euler)
     this->theta = LINEAR_COMBINATION(this->theta, this->omega, dt);
@@ -66,7 +66,7 @@ void controller_kinematics_draw(controller_p __this)
     // En fait il va juste subir la translation qui l'emmene de (0,0,0) à sa position actuelle
     mat4_t tr = translation(this->pos.fx, this->pos.fy, this->pos.fz);
 
-    mat4_t P;   // Envoie ex sur theta, servira pour l'axe de rotation
+    mat4_t P; // Envoie ex sur theta, servira pour l'axe de rotation
     // rotation est la matrice de rotation de l'objet autour de son axe de rotation, d'angle || theta ||
     mat4_t rotation = mat4_rotation(this->theta, &P);
 
@@ -88,7 +88,7 @@ void controller_kinematics_draw(controller_p __this)
     u_Rotation = glGetUniformLocation(program, "u_Rotation");
     glUniformMatrix4fv(u_Rotation, 1, GL_FALSE, mat4_get(&rotation));
 
-    if(this->radius != 0.0)
+    if (this->radius != 0.0)
     {
         // Si cet objet est une boule, mettre à jour l'uniform des axes de rotation
 
