@@ -256,6 +256,26 @@ unsigned int* init_index_buffer_sphere(unsigned int *nb_index)
 //     return Pave(c, c, c, r, g, b, cube_images);
 // }
 
+/*
+if(this.model_id == SPHERE_BIG_BUF)
+    {
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, this.cubemap_id);
+
+        unsigned int u_NormalMap = glGetUniformLocation(program, "u_NormalMap");
+        glUniform1i(u_NormalMap, 1);
+    }
+    else if(this.model_id == CUBE_TEST_BUF)
+    {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, this.cubemap_id);
+
+        unsigned int u_Cubemap = glGetUniformLocation(program, "u_Cubemap");
+        glUniform1i(u_Cubemap, 0);
+    }
+*/
+
+
 void model_3D_draw(model_3D_t this, materiau_t materiau, unsigned int program_index)
 {
     // D'abord on set le program qui sera utilisé pour le rendu de cet objet
@@ -266,9 +286,22 @@ void model_3D_draw(model_3D_t this, materiau_t materiau, unsigned int program_in
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, this.texture_id);
-
+        
         unsigned int u_Texture = glGetUniformLocation(program, "u_Texture");
         glUniform1i(u_Texture, 0);
+    }
+
+
+    // Il faut REDIRE à OpenGL que "j'associe [tel] id au GL_TEXTUREi de GL_TEXTURE_CUBE_MAP" (pour des raisons de legacy...) avant le rendu
+    if(this.model_id == SPHERE_BIG_BUF)
+    {
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, this.cubemap_id);
+    }
+    else if(this.model_id == CUBE_TEST_BUF)
+    {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, this.cubemap_id);
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, VERTEX_BUFFER_ID[this.model_id]);

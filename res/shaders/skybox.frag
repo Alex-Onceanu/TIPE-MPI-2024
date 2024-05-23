@@ -11,7 +11,7 @@ struct Material {
 uniform vec3 u_Light;
 uniform vec3 u_CameraPos;
 uniform Material u_Material;
-uniform samplerCube u_Cubemap;
+uniform samplerCube u_Skybox;
 
 varying vec3 v_Color;
 varying vec3 v_Normal;
@@ -20,5 +20,5 @@ varying vec3 v_TexCoords;
 
 void main() {
     // L'image est chargée sous format GBR et non pas RGB
-    gl_FragColor = textureCube(u_Cubemap, v_TexCoords).yzxw;
+    gl_FragColor = textureCube(u_Skybox, v_TexCoords).yzxw;
 }

@@ -85,7 +85,7 @@ extern float BALL_MASS;
 
 #define GRAVITY_0 0.03
 #define FLUID_MU_0 0.006
-#define SOLID_MU_0 0.5
+#define SOLID_MU_0 0.43
 #define ROTATION_MU_0 0.04
 #define THROW_SPEED_0 1.3
 #define THROW_ANGLE_0 0.0

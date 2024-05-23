@@ -23,6 +23,7 @@ struct world
     vector_p events;
     controller_camera_p camera;
     physics_manager_p manager;
+    unsigned int ball_normal_map;
 };
 
 typedef struct world world_t, *world_p;
@@ -38,6 +39,7 @@ world_p world_init()
     this->manager = Physics_manager();
 
     const char *SKYBOX[6] = {"../res/textures/sky/right.ppm", "../res/textures/sky/left.ppm", "../res/textures/sky/up.ppm", "../res/textures/sky/down.ppm", "../res/textures/sky/front.ppm", "../res/textures/sky/back.ppm"};
+    const char *BALL_NORMAL_MAP[6] = {"../res/textures/ball/right.ppm", "../res/textures/ball/left.ppm", "../res/textures/ball/up.ppm", "../res/textures/ball/down.ppm", "../res/textures/ball/front.ppm", "../res/textures/ball/back.ppm"};
 
     this->camera = Controller_camera(7.0, 1.0, 0.0);
     {
@@ -67,7 +69,7 @@ world_p world_init()
         controller_kinematics_p ck = Controller_kinematics(1.0, Force3(0.0, 1.0, 0.0), Force3(0.0, 0.0, 0.0), NULL);
 
         // model_3D_p cube3d = Cube(4.0, 1.0, 1.0, 1.0, SKYBOX);
-        model_3D_t cube3d = {CUBE_TEST_BUF, init_cubemap(SKYBOX), NO_TEXTURE};
+        model_3D_t cube3d = {CUBE_TEST_BUF, init_cubemap(SKYBOX, true), NO_TEXTURE};
         controller_solid_p cs = Controller_solid(cube3d, SOLEIL);
 
         entity_add_controller(e, (controller_p)ck);
@@ -81,6 +83,8 @@ world_p world_init()
         entity_add_controller(e, (controller_p)this->manager);
         vector_append(this->entities, (void *)e);
     }
+
+    this->ball_normal_map = init_cubemap(BALL_NORMAL_MAP, false);
 
     return this;
 }
@@ -113,7 +117,7 @@ void lance_boule(world_p this)
     controller_kinematics_add_force(ck, Force3(this->camera->direction_x * v0 * mass, this->camera->direction_y * v0 * mass, this->camera->direction_z * v0 * mass),
                                     ck->pos);
 
-    model_3D_t model = {SPHERE_BIG_BUF, NO_TEXTURE, NO_TEXTURE};
+    model_3D_t model = {SPHERE_BIG_BUF, this->ball_normal_map, NO_TEXTURE};
     controller_solid_p cs = Controller_solid(model, FER);
 
     entity_add_controller(e, (controller_p)ck);

@@ -334,7 +334,8 @@ mat4_t mat4_rotation(force3_t axe, mat4_t* passage)
         return mat4_id_t();
     }
 
-    force3_t theta = LINEAR_COMBINATION(Force3(0.0, 0.0, 0.0), axe, (1.0 / angle));
+    force3_t theta = axe;
+    normalize(&theta);
 
     // Matrice de passage vers une nouvelle base dans laquelle theta est le nouvel axe Ox
     float d = sqrtf(theta.fx * theta.fx + theta.fy * theta.fy);
@@ -349,8 +350,14 @@ mat4_t mat4_rotation(force3_t axe, mat4_t* passage)
     P.coefs[9] = theta.fz * P.coefs[4];
     P.coefs[10] = theta.fx * P.coefs[5] - theta.fy * P.coefs[4];
 
+    // P.coefs[0] *= angle;
+    // P.coefs[1] *= angle;
+    // P.coefs[2] *= angle;
     if(passage != NULL) 
         *passage = P;
+    // P.coefs[0] /= angle;
+    // P.coefs[1] /= angle;
+    // P.coefs[2] /= angle;
 
     mat4_t P_T = mat4_transpose(P);
 

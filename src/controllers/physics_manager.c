@@ -57,8 +57,8 @@ void apply_collision_force(controller_kinematics_p c1, controller_kinematics_p c
     force3_t F2 = force3_scale(impact_direction, F2_norm);
     force3_t impact_pos = LINEAR_COMBINATION(c2->pos, impact_direction, c2->radius);
 
-    controller_kinematics_add_force(c1, F1, impact_pos);
-    controller_kinematics_add_force(c2, F2, impact_pos);
+    controller_kinematics_add_force(c1, F1, c1->pos);
+    controller_kinematics_add_force(c2, F2, c1->pos);
 }
 
 void physics_manager_update_collisions(physics_manager_p this, int nb_controllers)
@@ -125,9 +125,6 @@ void physics_manager_update(controller_p this2)
     int nb_controllers = vector_len(this->kinematic_controllers);
     controller_kinematics_p tmp_controller = NULL;
     const float boing_coef = 1.3;
-    // Vaut 1 si vx > 0, -1 sinon (idem pour z)
-    float speed_direction_x = 1.0;
-    float speed_direction_z = 1.0;
 
     for (int i = 0; i < nb_controllers; i++)
     {
@@ -139,11 +136,11 @@ void physics_manager_update(controller_p this2)
 
         // La rotation doit petit a petit s'attenuer
         float w = norme2(tmp_controller->omega);
-        // if (w > ROTATION_MU)
-        // {
-        //     tmp_controller->omega = force3_sub(tmp_controller->omega, force3_scale(tmp_controller->omega, (dt / tmp_controller->mass) * (1.0 - ROTATION_MU) / norme2(tmp_controller->omega)));
-        // }
-        if (w > 0.001)
+        if (w > 1.0 - ROTATION_MU)
+        {
+            tmp_controller->omega = force3_sub(tmp_controller->omega, force3_scale(tmp_controller->omega, (1.0 - ROTATION_MU) / norme2(tmp_controller->omega)));
+        }
+        else if (w > 0.001)
         {
             tmp_controller->omega = force3_scale(tmp_controller->omega, (1.0 - ROTATION_MU));
         }
@@ -151,16 +148,13 @@ void physics_manager_update(controller_p this2)
         {
             tmp_controller->omega = Force3(0.0, 0.0, 0.0);
         }
-        float v2 = norme2(Force3(tmp_controller->speed.fx, 0.0, tmp_controller->speed.fz));
-        printf("w = %f, v = %f\n", w, v2);
 
-        force3_t normal = Force3(0.0, 1.0, 0.0);
-        force3_t axis = tmp_controller->theta;
-        normalize(&axis);
         if (tmp_controller->pos.fy <= 0.0)
         {
             tmp_controller->pos.fy = 0.0;
             force3_t contact_sol = force3_add(tmp_controller->pos, Force3(0.0, -tmp_controller->radius, 0.0));
+            force3_t speed_proj = Force3(tmp_controller->speed.fx, 0.0, tmp_controller->speed.fz);
+            float v_proj = norme2(speed_proj);
 
             // Rebond sur le sol (réaction du support)
             if (ABS(tmp_controller->speed.fy) > 0.1)
@@ -171,7 +165,7 @@ void physics_manager_update(controller_p this2)
             }
 
             // Rugosité du sol (frottements aléatoires)
-            if (v2 > 0.1)
+            if (v_proj > 0.1)
             {
                 float noise_x = 0.0, noise_z = 0.0;
                 if (randint(1, 3) == 1)
@@ -182,56 +176,49 @@ void physics_manager_update(controller_p this2)
                     noise_z = sign2 * (1.0 / 100000) * (float)randint(1, 1000);
                 }
 
-                speed_direction_x = tmp_controller->speed.fx >= 0.0 ? 1.0 : -1.0;
-                speed_direction_z = tmp_controller->speed.fz >= 0.0 ? 1.0 : -1.0;
+                // Vaut 1 si vx > 0, -1 sinon (idem pour z)
+                float speed_direction_x = tmp_controller->speed.fx >= 0.0 ? 1.0 : -1.0;
+                float speed_direction_z = tmp_controller->speed.fz >= 0.0 ? 1.0 : -1.0;
 
                 // controller_kinematics_add_force(tmp_controller, Force3(v * noise_x, 0.0, v * noise_z),
                 // tmp_controller->pos);
             }
 
             // Frottements solides : de norme μ * m * g tant que la vitesse et grande
-            // if (v > SOLID_MU * tmp_controller->mass * GRAVITY)
-            // {
-            //     force3_t frottements_solides = force3_scale(tmp_controller->speed,
-            //                                                 -SOLID_MU * tmp_controller->mass * GRAVITY / norme2(tmp_controller->speed));
-
-            //     frottements_solides.fy = 0.0;
-
-            //     controller_kinematics_add_force(tmp_controller, frottements_solides, contact_sol);
-            // }
-            // Deviennent des frottements linéaires quand la vitesse est faible
-            if (v2 > 0.01)
+            if (v_proj > SOLID_MU * tmp_controller->mass * GRAVITY)
             {
-                force3_t frottements_solides = force3_scale(Force3(tmp_controller->speed.fx, 0.0, tmp_controller->speed.fz), -SOLID_MU + tmp_controller->radius * w * DOT_PRODUCT(axis, normal));
+                force3_t frottements_solides = force3_scale(speed_proj,
+                                                            -SOLID_MU * tmp_controller->mass * GRAVITY / v_proj);
 
-                frottements_solides.fy = 0.0;
+                controller_kinematics_add_force(tmp_controller, frottements_solides, contact_sol);
+            }
+            // Deviennent des frottements linéaires quand la vitesse est faible
+            if (v_proj > 0.001)
+            {
+                force3_t frottements_solides = force3_scale(speed_proj, -SOLID_MU);
 
                 controller_kinematics_add_force(tmp_controller, frottements_solides, contact_sol);
             }
             else
             {
-                tmp_controller->speed = Force3(0.0, 0.0, 0.0);
+                tmp_controller->speed = Force3(0.0, tmp_controller->speed.fy, 0.0);
             }
 
             // C'est l'heure de faire avancer les boules qui roulent
-            force3_t rolling = force3_cross_product(Force3(0.0, -tmp_controller->radius, 0.0), axis); // de norme R pour l'instant
-            rolling = force3_scale(rolling, w * DOT_PRODUCT(axis, normal));                           // De norme R * w * < axis | normal >
+            force3_t normal = Force3(0.0, 1.0, 0.0);
+            force3_t axis = tmp_controller->theta;
+            normalize(&axis);
+            force3_t rolling = force3_cross_product(Force3(0.0, -tmp_controller->radius, 0.0), axis);   // de norme R pour l'instant
+            rolling = force3_scale(rolling, w * 2.0 * PI * DOT_PRODUCT(axis, normal));                  // De norme R * w * < axis | normal >
 
-            controller_kinematics_add_force(tmp_controller, rolling, tmp_controller->pos);
+            // if(w > 0.01 && DOT_PRODUCT(rolling, speed_proj) >= 0.0)
+            controller_kinematics_add_force(tmp_controller, rolling, contact_sol);
         }
-        else if (v > 0.01 || tmp_controller->pos.fy > 0.6)
+        else if (v > 0.01 || tmp_controller->pos.fy > 0.01)
         {
             // On applique le poids uniquement si l'objet est au-dessus du sol
             controller_kinematics_add_force(tmp_controller, Force3(0.0, -tmp_controller->mass * GRAVITY, 0.0),
                                             tmp_controller->pos);
-
-            // C'est l'heure de faire avancer les boules qui roulent
-            force3_t axis = tmp_controller->theta;
-            normalize(&axis);
-            force3_t rolling = force3_cross_product(Force3(0.0, -tmp_controller->radius, 0.0), axis); // de norme R pour l'instant
-            rolling = force3_scale(rolling, w * DOT_PRODUCT(axis, normal));                           // De norme R * w * < axis | normal >
-
-            controller_kinematics_add_force(tmp_controller, rolling, tmp_controller->pos);
         }
     }
 

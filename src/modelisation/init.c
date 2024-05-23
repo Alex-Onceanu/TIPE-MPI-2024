@@ -167,7 +167,7 @@ unsigned int init_texture(const char* path)
 }
 
 // paths = 6 chemins de fichiers (.ppm par pitié)
-unsigned int init_cubemap(const char *paths[6])
+unsigned int init_cubemap(const char *paths[6], bool skybox)
 {
     // identifiant du cubemap, qu'on renverra à la fin
     unsigned int texture_id;
@@ -200,27 +200,46 @@ unsigned int init_cubemap(const char *paths[6])
         }
         else
         {
-            // printf("l'image a pu être chargée : yooopi !\n");
             // On set des informations et l'image-même de la face GL_TEXTURE_CUBE_MAP_POSITIVE_X + i
             // (c'est un sous-enum de GL_TEXTURE_CUBE_MAP représentant la i-ième face)
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
             // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
             // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+            // + CURRENT_TEXTURE_ID * 6 en haut
         }
     }
 
-    int wants_skybox[] = { SKYBOX_PROGRAM,COLOR_PROGRAM };
-    int nb_wants_skybox = sizeof(wants_skybox) / sizeof(int);
-
-    for(int i = 0; i < nb_wants_skybox; i++)
+    if(skybox)
     {
-        glUseProgram(PROGRAM_ID[wants_skybox[i]]); 
+        int wants_skybox[] = { SKYBOX_PROGRAM,COLOR_PROGRAM };
+        int nb_wants_skybox = sizeof(wants_skybox) / sizeof(int);
 
-        glActiveTexture(GL_TEXTURE0);
+        for(int i = 0; i < nb_wants_skybox; i++)
+        {
+            unsigned int program = PROGRAM_ID[wants_skybox[i]];
+            glUseProgram(program); 
+
+            // On associe le cubemap qu'on a chargé et associé à texture_id au GL_TEXTURE0 de GL_TEXTURE_CUBE_MAP
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, texture_id);
+
+            // On envoie le "0" de "GL_TEXTURE0" dans l'uniform u_Skybox du program actuel
+            unsigned int u_Skybox = glGetUniformLocation(program, "u_Skybox");
+            glUniform1i(u_Skybox, 0);
+        }
+    }
+    else
+    {
+        unsigned int program = PROGRAM_ID[COLOR_PROGRAM];
+        glUseProgram(program);
+        
+        // On associe le cubemap qu'on a chargé et associé à texture_id au GL_TEXTURE1 de GL_TEXTURE_CUBE_MAP
+        glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_CUBE_MAP, texture_id);
 
-        unsigned int u_Cubemap = glGetUniformLocation(PROGRAM_ID[wants_skybox[i]], "u_Cubemap");
-        glUniform1i(u_Cubemap, 0);
+        // On envoie le "1" de "GL_TEXTURE1" dans l'uniform u_NormalMap de color.frag
+        unsigned int u_NormalMap = glGetUniformLocation(program, "u_NormalMap");
+        glUniform1i(u_NormalMap, 1);
     }
 
     return texture_id;

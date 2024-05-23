@@ -1,6 +1,8 @@
 #ifndef INIT_H
 #define INIT_H
 
+#include <stdbool.h>
+
 // Renvoie un shader en c_str à partir de son fichier source
 char *read_shader(const char *filename);
 // Compile un shader (donc l'envoie à OpenGL) à partir du code source en c_str
@@ -12,7 +14,7 @@ int create_program(const char *vertex_shader, const char *fragment_shader);
 unsigned int init_texture(const char* path);
 
 // Charge un cubemap, renvoie son identifiant OpenGL
-unsigned int init_cubemap(const char* paths[6]);
+unsigned int init_cubemap(const char* paths[6], bool skybox);
 
 // Initialise le contexte Emscripten, lit les shaders et innitialise les programmes
 void init();

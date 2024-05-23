@@ -95,6 +95,8 @@ void controller_kinematics_draw(controller_p __this)
         program = PROGRAM_ID[AXIS_PROGRAM];
         glUseProgram(program);
 
+        float w = norme2(this->omega);        
+        mat4_rotation(this->omega, &P);
         u_Rotation = glGetUniformLocation(program, "u_Rotation");
         glUniformMatrix4fv(u_Rotation, 1, GL_FALSE, mat4_get(&P));
 
@@ -103,7 +105,7 @@ void controller_kinematics_draw(controller_p __this)
 
         int u_Omega = glGetUniformLocation(program, "u_Omega");
         // printf("omega = %f\n", norme2(this->omega));
-        glUniform1f(u_Omega, norme2(this->omega) * FPS / (2.0 * PI));
+        glUniform1f(u_Omega, w * FPS / (2.0 * PI));
     }
 }
 

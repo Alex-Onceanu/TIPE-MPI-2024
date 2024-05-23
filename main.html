@@ -16,7 +16,7 @@
                 onchange="c_gravity(this.value)" />
             <br>µf <input type="range" min="0" max="200" value="36" oninput="c_fluid_mu(this.value)"
                 onchange="c_fluid_mu(this.value)" />
-            <br>µs <input type="range" min="0" max="30" value="18" oninput="c_solid_mu(this.value)"
+            <br>µs <input type="range" min="0" max="30" value="26" oninput="c_solid_mu(this.value)"
                 onchange="c_solid_mu(this.value)" />
             <br>µr <input type="range" min="0" max="60" value="24" oninput="c_rotation_mu(this.value)"
                 onchange="c_rotation_mu(this.value)" />
@@ -36,7 +36,7 @@
                 onchange="c_ambient_intensity(this.value)" />
             <br>ρ <input type="range" min="0" max="100" value="20" oninput="c_reflectivity(this.value)"
                 onchange="c_reflectivity(this.value)" />
-            <br>∆ <input type="checkbox" onclick="toggle_should_render_axis()">
+            <br>∆ <input type="checkbox" onclick="toggle_should_render_axis()" checked>
         </p>
 
         <canvas id="canvas" width="950%" height="950%"
