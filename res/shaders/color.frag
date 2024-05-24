@@ -56,5 +56,11 @@ void main() {
     float ground_blend = smoothstep(0.1, -0.1, -frag_to_sky.y);
     sky_color = sky_color * ground_blend + (1.0 - ground_blend) * vec3(0.83137, 0.72549, 0.588235);
 
-    gl_FragColor = vec4(((1.0 - u_Reflectivity) * v_Color + u_Reflectivity * sky_color) * u_LightColor * (u_Material.ambient * u_AmbientIntensity + diffuse * u_Material.diffuse + specular * u_Material.specular), 1.0);
+    if((1.0 - max(0.0, dot(true_normal, v_Normal))) > 0.01)
+    {
+        gl_FragColor = vec4(vec3(0.4, 0.4, 0.4), 0.7);
+    }
+    else
+        gl_FragColor = vec4(((1.0 - u_Reflectivity) * v_Color + u_Reflectivity * sky_color) * u_LightColor * (u_Material.ambient * u_AmbientIntensity + diffuse * u_Material.diffuse + specular * u_Material.specular), 1.0);
+    // gl_FragColor = vec4((1.0 - max(0.0, dot(true_normal, v_Normal))) * vec3(1.0, 1.0, 1.0), 1.0);
 }

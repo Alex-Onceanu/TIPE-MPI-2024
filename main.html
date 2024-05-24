@@ -16,13 +16,13 @@
                 onchange="c_gravity(this.value)" />
             <br>µf <input type="range" min="0" max="200" value="36" oninput="c_fluid_mu(this.value)"
                 onchange="c_fluid_mu(this.value)" />
-            <br>µs <input type="range" min="0" max="30" value="26" oninput="c_solid_mu(this.value)"
+            <br>µs <input type="range" min="0" max="60" value="59" oninput="c_solid_mu(this.value)"
                 onchange="c_solid_mu(this.value)" />
-            <br>µr <input type="range" min="0" max="60" value="24" oninput="c_rotation_mu(this.value)"
+            <br>µr <input type="range" min="0" max="60" value="12" oninput="c_rotation_mu(this.value)"
                 onchange="c_rotation_mu(this.value)" />
-            <br>m <input type="range" min="10" max="400" value="73" oninput="c_ball_mass(this.value)"
+            <br>m <input type="range" min="62" max="400" value="73" oninput="c_ball_mass(this.value)"
                 onchange="c_ball_mass(this.value)" />
-            <br>v <input type="range" min="10" max="50" value="13" oninput="c_throw_speed(this.value)"
+            <br>v <input type="range" min="10" max="50" value="15" oninput="c_throw_speed(this.value)"
                 onchange="c_throw_speed(this.value)" />
             <br>θ <input type="range" min="-45" max="45" value="0" oninput="c_throw_angle(this.value)"
                 onchange="c_throw_angle(this.value)" />
@@ -34,14 +34,17 @@
                 onchange="c_light_color_b(this.value)" />
             <br>a_I <input type="range" min="0" max="100" value="90" oninput="c_ambient_intensity(this.value)"
                 onchange="c_ambient_intensity(this.value)" />
-            <br>ρ <input type="range" min="0" max="100" value="20" oninput="c_reflectivity(this.value)"
+            <br>ρ <input type="range" min="0" max="100" value="60" oninput="c_reflectivity(this.value)"
                 onchange="c_reflectivity(this.value)" />
             <br>∆ <input type="checkbox" onclick="toggle_should_render_axis()" checked>
         </p>
-
+        
         <canvas id="canvas" width="950%" height="950%"
             style="background-color: black; position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);">
         </canvas>
+
+        <div style="width:10px; height:10px; background-color:red; border-radius:50%; position: absolute; left: 50%; top:50%; transform: translate(-50%,-50%);"></div>
+
     </div>
 </body>
 

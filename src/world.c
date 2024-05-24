@@ -39,7 +39,7 @@ world_p world_init()
     this->manager = Physics_manager();
 
     const char *SKYBOX[6] = {"../res/textures/sky/right.ppm", "../res/textures/sky/left.ppm", "../res/textures/sky/up.ppm", "../res/textures/sky/down.ppm", "../res/textures/sky/front.ppm", "../res/textures/sky/back.ppm"};
-    const char *BALL_NORMAL_MAP[6] = {"../res/textures/ball/right.ppm", "../res/textures/ball/left.ppm", "../res/textures/ball/up.ppm", "../res/textures/ball/down.ppm", "../res/textures/ball/front.ppm", "../res/textures/ball/back.ppm"};
+    const char *BALL_NORMAL_MAP[6] = {"../res/textures/ball/side.ppm", "../res/textures/ball/side.ppm", "../res/textures/ball/up.ppm", "../res/textures/ball/down.ppm", "../res/textures/ball/side.ppm", "../res/textures/ball/side.ppm"};
 
     this->camera = Controller_camera(7.0, 1.0, 0.0);
     {

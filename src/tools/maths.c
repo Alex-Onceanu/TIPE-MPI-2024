@@ -15,6 +15,11 @@ int randint(int a, int b)
     return (rand() % (1 + b - a)) + a;
 }
 
+float f_max(float x, float y)
+{
+    return x > y ? x : y;
+}
+
 void Clamp(float *x, float min_x, float max_x)
 {
     if (*x > max_x)
@@ -350,30 +355,10 @@ mat4_t mat4_rotation(force3_t axe, mat4_t* passage)
     P.coefs[9] = theta.fz * P.coefs[4];
     P.coefs[10] = theta.fx * P.coefs[5] - theta.fy * P.coefs[4];
 
-    // P.coefs[0] *= angle;
-    // P.coefs[1] *= angle;
-    // P.coefs[2] *= angle;
-    if(passage != NULL) 
-        *passage = P;
-    // P.coefs[0] /= angle;
-    // P.coefs[1] /= angle;
-    // P.coefs[2] /= angle;
-
     mat4_t P_T = mat4_transpose(P);
 
-    // mat4_t test = mat4_produit(P, P_T);
-    // mat4_t id = mat4_id_t();
-    // for (int i = 0; i < 4; i++)
-    // {
-    //     for (int j = 0; j < 4; j++)
-    //     {
-    //         if (fabs(test.coefs[4 * i + j] - id.coefs[4 * i + j]) > 0.0001)
-    //         {
-    //             printf("MAUVAIS CHANGEMENT DE BASE !!\n");
-    //             return mat4_id_t();
-    //         }
-    //     }
-    // }
+    if(passage != NULL) 
+        *passage = P_T;
 
     return mat4_produit(P_T, mat4_produit(rotation_x_4(angle), P));
 }

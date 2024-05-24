@@ -12,6 +12,8 @@ void controller_kinematics_update(controller_p __this)
     // ruse de sioux
     controller_kinematics_p this = (controller_kinematics_p)__this;
 
+    if(this->radius <= 0.000001) return;
+
     // Somme vectorielle des forces extérieures s'appliquant à l'objet
     force3_t resultante = Force3(0.0, 0.0, 0.0);
     force3_t moment_total = Force3(0.0, 0.0, 0.0);
@@ -36,17 +38,22 @@ void controller_kinematics_update(controller_p __this)
     // m * a = somme des forces et a = dv/dt donc dv = somme des forces * dt / m
     this->speed = LINEAR_COMBINATION(this->speed, resultante, (dt / this->mass));
 
-    // On intègre speed : pos = somme des speed * dt (méthode d'Euler)
+    // On intègre speed : pos = somme des [speed * dt] (méthode d'Euler)
     this->pos = LINEAR_COMBINATION(this->pos, this->speed, dt);
 
     // TMC : on obtient une accélération angulaire à partir de la somme des moments des forces s'appliquant à cet objet
     // m dw/dt = somme des OM ^ F donc dw = somme des OM ^ F * dt / m
-
+    
     this->old_omega = this->omega;
     this->omega = LINEAR_COMBINATION(this->omega, moment_total, (dt / this->mass));
 
-    // On intègre omega : theta = somme des omega * dt (méthode d'Euler)
+    // On intègre omega : theta = somme des [omega * dt] (méthode d'Euler)
     this->theta = LINEAR_COMBINATION(this->theta, this->omega, dt);
+    float angle = norme2(this->theta);
+    normalize(&this->theta);
+
+    float new_angle = fmodf(angle, 2.0 * PI);
+    this->theta = force3_scale(this->theta, new_angle);
 
     // float Ep = this->mass * GRAVITY * this->pos.fy;
     // float Ec = 0.5 * this->mass * SQ_NORME2(this->speed);
@@ -66,9 +73,8 @@ void controller_kinematics_draw(controller_p __this)
     // En fait il va juste subir la translation qui l'emmene de (0,0,0) à sa position actuelle
     mat4_t tr = translation(this->pos.fx, this->pos.fy, this->pos.fz);
 
-    mat4_t P; // Envoie ex sur theta, servira pour l'axe de rotation
     // rotation est la matrice de rotation de l'objet autour de son axe de rotation, d'angle || theta ||
-    mat4_t rotation = mat4_rotation(this->theta, &P);
+    mat4_t rotation = mat4_rotation(this->theta, NULL);
 
     unsigned int program = PROGRAM_ID[this->super.program_index];
     glUseProgram(program);
@@ -88,14 +94,14 @@ void controller_kinematics_draw(controller_p __this)
     u_Rotation = glGetUniformLocation(program, "u_Rotation");
     glUniformMatrix4fv(u_Rotation, 1, GL_FALSE, mat4_get(&rotation));
 
-    if (this->radius != 0.0)
+    if (this->radius > 0.000001)
     {
         // Si cet objet est une boule, mettre à jour l'uniform des axes de rotation
-
         program = PROGRAM_ID[AXIS_PROGRAM];
         glUseProgram(program);
 
-        float w = norme2(this->omega);        
+        float w = norme2(this->omega);
+        mat4_t P; // Envoie vec{e_x} sur omega
         mat4_rotation(this->omega, &P);
         u_Rotation = glGetUniformLocation(program, "u_Rotation");
         glUniformMatrix4fv(u_Rotation, 1, GL_FALSE, mat4_get(&P));
@@ -104,7 +110,6 @@ void controller_kinematics_draw(controller_p __this)
         glUniformMatrix4fv(u_Translation, 1, GL_FALSE, mat4_get(&tr));
 
         int u_Omega = glGetUniformLocation(program, "u_Omega");
-        // printf("omega = %f\n", norme2(this->omega));
         glUniform1f(u_Omega, w * FPS / (2.0 * PI));
     }
 }

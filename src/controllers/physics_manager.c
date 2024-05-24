@@ -8,8 +8,8 @@
 #include "physics_manager.h"
 #include "../tools/maths.h"
 
-// Nb de frames d'attente entre deux collisions d'un meme couple de boules
-#define MAX_COOLDOWN 120
+// Nb de frames d'attente maximum entre deux collisions d'un meme couple de boules
+#define MAX_COOLDOWN 60
 
 // Renvoie 1 si la boule c1 touche la boule c2, 0 sinon
 int collision(controller_kinematics_p c1, controller_kinematics_p c2)
@@ -28,37 +28,48 @@ void apply_collision_force(controller_kinematics_p c1, controller_kinematics_p c
     {
         if (SQ_NORME2(v_diff) <= 0.00001)
         {
-            // Deux boules immobiles exactement au même endroit, situation assez improbable...
-            c1->pos.fx += c1->radius + c2->radius;
-            return;
+            // Deux boules immobiles exactement au même endroit, on les écarte un peu
+            c1->pos.fx += c2->radius;
+            c2->pos.fx -= c2->radius;
         }
+        else
+        {
+            // On téléporte une boule en arrière pour que les deux soient distantes de teleport_dist
+            const float teleport_dist = 0.1;
 
-        // On téléporte une boule en arrière pour que les deux soient distantes de teleport_dist
-        const float teleport_dist = 0.1;
+            controller_kinematics_p c_max = SQ_NORME2(c1->speed) > SQ_NORME2(c2->speed) ? c1 : c2;
+            force3_t teleport_direction = c_max->speed;
+            normalize(&teleport_direction);
+            c_max->pos = LINEAR_COMBINATION(c_max->pos, teleport_direction, -teleport_dist);
 
-        controller_kinematics_p c_max = SQ_NORME2(c1->speed) > SQ_NORME2(c2->speed) ? c1 : c2;
-        force3_t teleport_direction = c_max->speed;
-        normalize(&teleport_direction);
-        c_max->pos = LINEAR_COMBINATION(c_max->pos, teleport_direction, -teleport_dist);
-
-        impact_direction = force3_sub(c1->pos, c2->pos);
+            impact_direction = force3_sub(c1->pos, c2->pos);
+        }
     }
     normalize(&impact_direction);
 
     float m1 = c1->mass;
     float m2 = c2->mass;
+    float F1_norm, F2_norm;
 
-    // Première force de collision : conservation de l'énergie cinétique
-
-    float F1_norm = -2.0 * DOT_PRODUCT(v_diff, impact_direction) * m2 * m1 / (dt * (m1 + m2));
-    float F2_norm = 2.0 * DOT_PRODUCT(v_diff, impact_direction) * m1 * m2 / (dt * (m1 + m2));
+    if (SQ_NORME2(v_diff) <= 0.00001)
+    {
+        // Cas où les deux boules sont en collision mais quasi-immobiles (ou avancent ensemble dans la même direction)
+        printf("HUH ? LES BOUULES SONT EN COLLISION MAIS SANS BOUGER ?\n");
+        return;
+    }
+    else
+    {
+        // Conservation de l'énergie cinétique
+        F1_norm = -2.0 * DOT_PRODUCT(v_diff, impact_direction) * m2 * m1 / (dt * (m1 + m2));
+        F2_norm = 2.0 * DOT_PRODUCT(v_diff, impact_direction) * m1 * m2 / (dt * (m1 + m2)); // = -F1_norm en fait..
+    }
 
     force3_t F1 = force3_scale(impact_direction, F1_norm);
     force3_t F2 = force3_scale(impact_direction, F2_norm);
     force3_t impact_pos = LINEAR_COMBINATION(c2->pos, impact_direction, c2->radius);
 
-    controller_kinematics_add_force(c1, F1, c1->pos);
-    controller_kinematics_add_force(c2, F2, c1->pos);
+    controller_kinematics_add_force(c1, F1, impact_pos);
+    controller_kinematics_add_force(c2, F2, impact_pos);
 }
 
 void physics_manager_update_collisions(physics_manager_p this, int nb_controllers)
@@ -99,7 +110,11 @@ void physics_manager_update_collisions(physics_manager_p this, int nb_controller
 
                 printf("Tout va bien, on a le droit d'appliquer la force\n");
 
-                inserer(this->colliding, sopc, MAX_COOLDOWN);
+                // On n'appliquera plus de force à ce couple pendant "cooldown" frames
+                int cooldown = MAX_COOLDOWN;
+
+
+                inserer(this->colliding, sopc, cooldown);
 
                 apply_collision_force(tmp_controller, tmp_controller_2);
             }
@@ -110,8 +125,8 @@ void physics_manager_update_collisions(physics_manager_p this, int nb_controller
                 {
                     int v = rechercher(this->colliding, sopc);
                     supprimer(this->colliding, sopc);
-                    if (v > 0)
-                        inserer(this->colliding, sopc, v - 1);
+                    // if (v > 0)
+                        // inserer(this->colliding, sopc, v - 1);
                 }
             }
         }
@@ -205,13 +220,9 @@ void physics_manager_update(controller_p this2)
             }
 
             // C'est l'heure de faire avancer les boules qui roulent
-            force3_t normal = Force3(0.0, 1.0, 0.0);
-            force3_t axis = tmp_controller->theta;
-            normalize(&axis);
-            force3_t rolling = force3_cross_product(Force3(0.0, -tmp_controller->radius, 0.0), axis);   // de norme R pour l'instant
-            rolling = force3_scale(rolling, w * 2.0 * PI * DOT_PRODUCT(axis, normal));                  // De norme R * w * < axis | normal >
+            force3_t NR = Force3(0.0, tmp_controller->radius, 0.0);                 // Vecteur normal au sol de norme R
+            force3_t rolling = force3_cross_product(tmp_controller->omega, NR);     // De norme R * w * sin(w, N)
 
-            // if(w > 0.01 && DOT_PRODUCT(rolling, speed_proj) >= 0.0)
             controller_kinematics_add_force(tmp_controller, rolling, contact_sol);
         }
         else if (v > 0.01 || tmp_controller->pos.fy > 0.01)

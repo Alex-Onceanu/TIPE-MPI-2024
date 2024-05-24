@@ -67,7 +67,7 @@ extern float LIGHT_COLOR[3];
 extern float AMBIENT_INTENSITY;
 
 extern float BALL_REFLECTIVITY;
-#define BALL_REFLECTIVITY_0 0.2
+#define BALL_REFLECTIVITY_0 0.6
 
 extern bool SHOULD_RENDER_AXIS;
 
@@ -85,10 +85,10 @@ extern float BALL_MASS;
 
 #define GRAVITY_0 0.03
 #define FLUID_MU_0 0.006
-#define SOLID_MU_0 0.43
-#define ROTATION_MU_0 0.04
-#define THROW_SPEED_0 1.3
+#define SOLID_MU_0 0.9833
+#define ROTATION_MU_0 0.02
+#define THROW_SPEED_0 1.5
 #define THROW_ANGLE_0 0.0
-#define BALL_MASS_0 0.73 // masse réelle d'une boule de petanque : 0,730 kg
+#define BALL_MASS_0 0.8 // masse réelle d'une boule de petanque : 0,730 kg
 
 #endif
