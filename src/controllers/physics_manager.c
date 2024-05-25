@@ -70,6 +70,35 @@ void apply_collision_force(controller_kinematics_p c1, controller_kinematics_p c
 
     controller_kinematics_add_force(c1, F1, impact_pos);
     controller_kinematics_add_force(c2, F2, impact_pos);
+
+    // C'est l'heure de faire tourner les boules qui entrent en collision (modélisation du frottement solide boule contre boule)
+    force3_t spin_1 = force3_cross_product(Force3(0.0, -c1->radius, 0.0), c1->speed);
+    force3_t spin_2 = force3_cross_product(Force3(0.0, -c2->radius, 0.0), c2->speed);
+
+    // On projete ces spins sur Oy, on veut pas que ce calcul ait d'influence sur le mouvement des boules
+    spin_1.fx = 0.0;
+    spin_1.fz = 0.0;
+    spin_2.fx = 0.0;
+    spin_2.fz = 0.0;
+
+    float spin_norm_1 = (norme2(spin_1) + norme2(spin_2)) * m2 / (m1 + m2);
+    float spin_norm_2 = (norme2(spin_1) + norme2(spin_2)) * m1 / (m1 + m2);
+
+    if(SQ_NORME2(spin_1) > 0.0001)
+    {
+        normalize(&spin_1);
+
+        // Pour ajouter un moment sans force : créer une 2e force sans moment pour annuler la première (sans annuler son moment)
+        controller_kinematics_add_force(c1, force3_scale(spin_1, spin_norm_1), impact_pos);
+        controller_kinematics_add_force(c1, force3_scale(spin_1, -spin_norm_1), c1->pos);
+    }
+    if(SQ_NORME2(spin_2) > 0.0001)
+    {
+        normalize(&spin_2);
+
+        controller_kinematics_add_force(c2, force3_scale(spin_2, spin_norm_2), impact_pos);
+        controller_kinematics_add_force(c2, force3_scale(spin_2, -spin_norm_2), c2->pos);
+    }
 }
 
 void physics_manager_update_collisions(physics_manager_p this, int nb_controllers)
