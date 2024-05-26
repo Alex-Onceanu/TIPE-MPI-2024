@@ -81,8 +81,8 @@ void apply_collision_force(controller_kinematics_p c1, controller_kinematics_p c
     spin_2.fx = 0.0;
     spin_2.fz = 0.0;
 
-    float spin_norm_1 = (norme2(spin_1) + norme2(spin_2)) * m2 / (m1 + m2);
-    float spin_norm_2 = (norme2(spin_1) + norme2(spin_2)) * m1 / (m1 + m2);
+    float spin_norm_1 = (norme2(spin_1) + norme2(spin_2)) * m2 / (dt * (m1 + m2));
+    float spin_norm_2 = (norme2(spin_1) + norme2(spin_2)) * m1 / (dt * (m1 + m2));
 
     if(SQ_NORME2(spin_1) > 0.0001)
     {
@@ -216,16 +216,15 @@ void physics_manager_update(controller_p this2)
                 {
                     float sign1 = (float)randint(0, 1) * 2.0 - 1.0;
                     float sign2 = (float)randint(0, 1) * 2.0 - 1.0;
-                    noise_x = sign1 * (1.0 / 100000) * (float)randint(1, 1000);
-                    noise_z = sign2 * (1.0 / 100000) * (float)randint(1, 1000);
+                    noise_x = sign1 * (2.0 / 10000) * (float)randint(1, 1000);
+                    noise_z = sign2 * (2.0 / 10000) * (float)randint(1, 1000);
                 }
 
                 // Vaut 1 si vx > 0, -1 sinon (idem pour z)
                 float speed_direction_x = tmp_controller->speed.fx >= 0.0 ? 1.0 : -1.0;
                 float speed_direction_z = tmp_controller->speed.fz >= 0.0 ? 1.0 : -1.0;
 
-                // controller_kinematics_add_force(tmp_controller, Force3(v * noise_x, 0.0, v * noise_z),
-                // tmp_controller->pos);
+                controller_kinematics_add_force(tmp_controller, Force3(v * noise_x, 0.0, v * noise_z), contact_sol);
             }
 
             // Frottements solides : de norme μ * m * g tant que la vitesse et grande

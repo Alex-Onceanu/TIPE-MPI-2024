@@ -39,7 +39,7 @@ if (ENVIRONMENT_IS_NODE) {
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: /var/folders/cp/10vx0f3n76d2xw5zcf_5q3rc0000gn/T/tmpl_c3aqc2.js
+// include: /var/folders/cp/10vx0f3n76d2xw5zcf_5q3rc0000gn/T/tmpgx0ilj4e.js
 
   if (!Module.expectedDataFileDownloads) {
     Module.expectedDataFileDownloads = 0;
@@ -220,25 +220,25 @@ Module['FS_createPath']("/res/textures", "sky", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/res/shaders/axis.frag", "start": 0, "end": 463}, {"filename": "/res/shaders/axis.vert", "start": 463, "end": 1035}, {"filename": "/res/shaders/color.frag", "start": 1035, "end": 3082}, {"filename": "/res/shaders/color.vert", "start": 3082, "end": 3760}, {"filename": "/res/shaders/ground.frag", "start": 3760, "end": 5359}, {"filename": "/res/shaders/ground.vert", "start": 5359, "end": 5865}, {"filename": "/res/shaders/shadow.frag", "start": 5865, "end": 7600}, {"filename": "/res/shaders/shadow.vert", "start": 7600, "end": 10281}, {"filename": "/res/shaders/skybox.frag", "start": 10281, "end": 10744}, {"filename": "/res/shaders/skybox.vert", "start": 10744, "end": 11182}, {"filename": "/res/textures/ball/.DS_Store", "start": 11182, "end": 17330}, {"filename": "/res/textures/ball/down.ppm", "start": 17330, "end": 213953}, {"filename": "/res/textures/ball/side.ppm", "start": 213953, "end": 410576}, {"filename": "/res/textures/ball/up.ppm", "start": 410576, "end": 607199}, {"filename": "/res/textures/noise.ppm", "start": 607199, "end": 1393646}, {"filename": "/res/textures/sky/back.ppm", "start": 1393646, "end": 4539437}, {"filename": "/res/textures/sky/down.ppm", "start": 4539437, "end": 7685228}, {"filename": "/res/textures/sky/front.ppm", "start": 7685228, "end": 10831019}, {"filename": "/res/textures/sky/left.ppm", "start": 10831019, "end": 13976810}, {"filename": "/res/textures/sky/right.ppm", "start": 13976810, "end": 17122601}, {"filename": "/res/textures/sky/up.ppm", "start": 17122601, "end": 20268392}], "remote_package_size": 20268392});
+    loadPackage({"files": [{"filename": "/res/shaders/axis.frag", "start": 0, "end": 463}, {"filename": "/res/shaders/axis.vert", "start": 463, "end": 1040}, {"filename": "/res/shaders/color.frag", "start": 1040, "end": 3087}, {"filename": "/res/shaders/color.vert", "start": 3087, "end": 3765}, {"filename": "/res/shaders/crosshair.frag", "start": 3765, "end": 4160}, {"filename": "/res/shaders/ground.frag", "start": 4160, "end": 5759}, {"filename": "/res/shaders/ground.vert", "start": 5759, "end": 6265}, {"filename": "/res/shaders/shadow.frag", "start": 6265, "end": 8000}, {"filename": "/res/shaders/shadow.vert", "start": 8000, "end": 10681}, {"filename": "/res/shaders/skybox.frag", "start": 10681, "end": 11144}, {"filename": "/res/shaders/skybox.vert", "start": 11144, "end": 11582}, {"filename": "/res/textures/ball/.DS_Store", "start": 11582, "end": 17730}, {"filename": "/res/textures/ball/down.ppm", "start": 17730, "end": 214353}, {"filename": "/res/textures/ball/side.ppm", "start": 214353, "end": 410976}, {"filename": "/res/textures/ball/up.ppm", "start": 410976, "end": 607599}, {"filename": "/res/textures/noise.ppm", "start": 607599, "end": 1394046}, {"filename": "/res/textures/sky/back.ppm", "start": 1394046, "end": 4539837}, {"filename": "/res/textures/sky/down.ppm", "start": 4539837, "end": 7685628}, {"filename": "/res/textures/sky/front.ppm", "start": 7685628, "end": 10831419}, {"filename": "/res/textures/sky/left.ppm", "start": 10831419, "end": 13977210}, {"filename": "/res/textures/sky/right.ppm", "start": 13977210, "end": 17123001}, {"filename": "/res/textures/sky/up.ppm", "start": 17123001, "end": 20268792}], "remote_package_size": 20268792});
 
   })();
 
-// end include: /var/folders/cp/10vx0f3n76d2xw5zcf_5q3rc0000gn/T/tmpl_c3aqc2.js
-// include: /var/folders/cp/10vx0f3n76d2xw5zcf_5q3rc0000gn/T/tmp6o_7c6zn.js
+// end include: /var/folders/cp/10vx0f3n76d2xw5zcf_5q3rc0000gn/T/tmpgx0ilj4e.js
+// include: /var/folders/cp/10vx0f3n76d2xw5zcf_5q3rc0000gn/T/tmp6uzo0r5o.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if (Module['$ww'] || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: /var/folders/cp/10vx0f3n76d2xw5zcf_5q3rc0000gn/T/tmp6o_7c6zn.js
-// include: /var/folders/cp/10vx0f3n76d2xw5zcf_5q3rc0000gn/T/tmpi3hm2f59.js
+  // end include: /var/folders/cp/10vx0f3n76d2xw5zcf_5q3rc0000gn/T/tmp6uzo0r5o.js
+// include: /var/folders/cp/10vx0f3n76d2xw5zcf_5q3rc0000gn/T/tmpkmocn_ea.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach(function(task) {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: /var/folders/cp/10vx0f3n76d2xw5zcf_5q3rc0000gn/T/tmpi3hm2f59.js
+  // end include: /var/folders/cp/10vx0f3n76d2xw5zcf_5q3rc0000gn/T/tmpkmocn_ea.js
 
 
 // Sometimes an existing Module object exists with properties

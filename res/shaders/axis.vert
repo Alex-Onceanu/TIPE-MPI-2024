@@ -20,6 +20,7 @@ void main() {
     rot[2][0] = rot[2][0] * scaling;
 
     gl_Position = vec4(a_Position, 1.0) * (rot * u_Translation) * u_View * u_Proj;
+    
     v_Color = a_Color;
     v_Omega = u_Omega / 3.0;
 }

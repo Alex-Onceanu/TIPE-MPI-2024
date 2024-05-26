@@ -41,7 +41,7 @@ world_p world_init()
     const char *SKYBOX[6] = {"../res/textures/sky/right.ppm", "../res/textures/sky/left.ppm", "../res/textures/sky/up.ppm", "../res/textures/sky/down.ppm", "../res/textures/sky/front.ppm", "../res/textures/sky/back.ppm"};
     const char *BALL_NORMAL_MAP[6] = {"../res/textures/ball/side.ppm", "../res/textures/ball/side.ppm", "../res/textures/ball/up.ppm", "../res/textures/ball/down.ppm", "../res/textures/ball/side.ppm", "../res/textures/ball/side.ppm"};
 
-    this->camera = Controller_camera(7.0, 1.0, 0.0);
+    this->camera = Controller_camera(Force3(7.0, 1.0, 0.0), Force3(0.0, 0.0, -1.0));
     {
         // Instancier la camera
         entity_p cam = Entity(NO_PROGRAM);
@@ -103,19 +103,20 @@ void world_add_event(world_p this, user_event_t e_t)
 void lance_boule(world_p this)
 {
     entity_p e = Entity(COLOR_PROGRAM);
-    // const float mass = 0.5 + (rand() % 4) * 0.5;
+    
     const float mass = BALL_MASS;
     const float v0 = THROW_SPEED / dt;
 
-    controller_kinematics_p ck = Controller_kinematics(mass,
-                                                       Force3(this->camera->x + this->camera->direction_x * 10.0,
-                                                              this->camera->y + this->camera->direction_y * 10.0,
-                                                              this->camera->z + this->camera->direction_z * 10.0),
-                                                       Force3(0.0, 1.0, 0.0),
-                                                       this->manager);
 
-    controller_kinematics_add_force(ck, Force3(this->camera->direction_x * v0 * mass, this->camera->direction_y * v0 * mass, this->camera->direction_z * v0 * mass),
-                                    ck->pos);
+    force3_t throw_direction = LINEAR_COMBINATION(this->camera->direction, Force3(0.0, 1.0, 0.0), sin(THROW_ANGLE));
+    normalize(&throw_direction);
+
+    controller_kinematics_p ck = Controller_kinematics( mass,
+                                                        LINEAR_COMBINATION(this->camera->pos, this->camera->direction, 10.0),
+                                                        Force3(0.0, 1.0, 0.0),
+                                                        this->manager);
+
+    controller_kinematics_add_force(ck, force3_scale(throw_direction, v0 * mass), ck->pos);
 
     model_3D_t model = {SPHERE_BIG_BUF, this->ball_normal_map, NO_TEXTURE};
     controller_solid_p cs = Controller_solid(model, FER);

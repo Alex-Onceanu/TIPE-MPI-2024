@@ -58,23 +58,24 @@ void debug()
 world_p world;
 
 double old_time = 0.0;
-const double TARGET_DT = 1.0 / FPS;
-double dt = TARGET_DT; // en s
+double dt = 1.0; // en s ici
 
 void update_dt(double time)
 {
+    float old_dt = dt;
     dt = time - old_time;
     old_time = time;
 
-    dt *= FPS;
+    dt *= 60;  // On accélère le temps, sinon tout est super lent
 
-    if (dt > 10.0)
+    if (dt > 5.0)
     {
         // Pour ne pas avoir d'explosion surprise..
-        dt = 1.0;
+        dt = old_dt;
     }
 
-    // printf("dt = %f\n", dt);
+    // if(dt > 0.6)
+        // printf("dt = %f\n", dt);
 }
 
 // Une seule itération de la boucle principale

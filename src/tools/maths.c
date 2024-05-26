@@ -3,6 +3,7 @@
 #include <math.h>
 
 #include "maths.h"
+#include "constantes.h"
 
 float my_sqrtf(float x)
 {
@@ -335,16 +336,27 @@ mat4_t mat4_rotation(force3_t axe, mat4_t* passage)
 
     if(angle <= 0.000001)
     {
-        *passage = mat4_id_t();
+        if(passage != NULL) *passage = mat4_id_t();
         return mat4_id_t();
     }
 
     force3_t theta = axe;
     normalize(&theta);
 
+    mat4_t P = mat4_id_t();
+
     // Matrice de passage vers une nouvelle base dans laquelle theta est le nouvel axe Ox
     float d = sqrtf(theta.fx * theta.fx + theta.fy * theta.fy);
-    mat4_t P = mat4_id_t();
+
+    if(d <= 0.000001)
+    {
+        // Si on entre dans ce if la rotation est nécessairement autour de Oz
+        // La matrice de passage est alors celle qui place vec{e_x} sur + ou - vec{e_z}
+        if(passage != NULL) *passage = rotation_y_4(- (theta.fz / fabs(theta.fz)) * PI / 2.0);
+
+        return rotation_z_4(angle);
+    }
+
     P.coefs[0] = theta.fx;
     P.coefs[1] = theta.fy;
     P.coefs[2] = theta.fz;
@@ -357,8 +369,7 @@ mat4_t mat4_rotation(force3_t axe, mat4_t* passage)
 
     mat4_t P_T = mat4_transpose(P);
 
-    if(passage != NULL) 
-        *passage = P_T;
+    if(passage != NULL) *passage = P_T;
 
     return mat4_produit(P_T, mat4_produit(rotation_x_4(angle), P));
 }

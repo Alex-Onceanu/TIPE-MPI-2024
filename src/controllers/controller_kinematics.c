@@ -110,7 +110,7 @@ void controller_kinematics_draw(controller_p __this)
         glUniformMatrix4fv(u_Translation, 1, GL_FALSE, mat4_get(&tr));
 
         int u_Omega = glGetUniformLocation(program, "u_Omega");
-        glUniform1f(u_Omega, w * FPS / (2.0 * PI));
+        glUniform1f(u_Omega, w * 10.0);
     }
 }
 

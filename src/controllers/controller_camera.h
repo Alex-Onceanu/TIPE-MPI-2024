@@ -10,7 +10,7 @@ typedef struct controller_camera
     // Inheritance, toute instance contient une instance pere (super-ieure)
     controller_t super;
 
-    float x, y, z;
+    force3_t pos;
     float v;             // Vitesse de référence (pixels/frame)
     float v_x, v_y, v_z; // Valent v, -v ou 0
     float theta_x, theta_y;
@@ -20,10 +20,10 @@ typedef struct controller_camera
     float mouse_x, mouse_y;
     float old_mouse_x, old_mouse_y;
     double old_time;
-    float direction_x, direction_y, direction_z;
+    force3_t direction;
 } controller_camera_t, *controller_camera_p;
 
 // Constructeur
-controller_camera_p Controller_camera(float x0, float y0, float z0);
+controller_camera_p Controller_camera(force3_t pos0, force3_t dir0);
 
 #endif

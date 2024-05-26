@@ -8,7 +8,7 @@
     <script await src="main.js"> </script>
 </head>
 
-<body style="background-color: black;">
+<body style="background-color: #222222;">
     <div>
         <p
             style="position: absolute; top: 50%; left: 50%; transform: translate(-750px, -420px) scale(1.3, 1.3); font-size: x-large; color: white; text-align: right;">
@@ -18,13 +18,13 @@
                 onchange="c_fluid_mu(this.value)" />
             <br>µs <input type="range" min="0" max="60" value="59" oninput="c_solid_mu(this.value)"
                 onchange="c_solid_mu(this.value)" />
-            <br>µr <input type="range" min="0" max="60" value="12" oninput="c_rotation_mu(this.value)"
+            <br>µr <input type="range" min="0" max="30" value="12" oninput="c_rotation_mu(this.value)"
                 onchange="c_rotation_mu(this.value)" />
-            <br>m <input type="range" min="62" max="400" value="73" oninput="c_ball_mass(this.value)"
+            <br>m <input type="range" min="100" max="400" value="146" oninput="c_ball_mass(this.value)"
                 onchange="c_ball_mass(this.value)" />
             <br>v <input type="range" min="10" max="50" value="15" oninput="c_throw_speed(this.value)"
                 onchange="c_throw_speed(this.value)" />
-            <br>θ <input type="range" min="-45" max="45" value="0" oninput="c_throw_angle(this.value)"
+            <br>θ <input type="range" min="-60" max="60" value="0" oninput="c_throw_angle(this.value)"
                 onchange="c_throw_angle(this.value)" />
             <br>l_R <input type="range" min="0" max="255" value="255" oninput="c_light_color_r(this.value)"
                 onchange="c_light_color_r(this.value)" />
@@ -43,7 +43,7 @@
             style="background-color: black; position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);">
         </canvas>
 
-        <div style="width:10px; height:10px; background-color:red; border-radius:50%; position: absolute; left: 50%; top:50%; transform: translate(-50%,-50%);"></div>
+        <!-- <div style="width:10px; height:10px; background-color:red; border-radius:50%; position: absolute; left: 50%; top:50%; transform: translate(-50%,-50%);"></div> -->
 
     </div>
 </body>

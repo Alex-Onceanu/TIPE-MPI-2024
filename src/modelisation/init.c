@@ -138,6 +138,16 @@ void init_buffers()
     NB_INDEX_PER_BUFFER[AXIS_BUF] = 0;
     INDEX_BUFFER_ID[AXIS_BUF] = 0;
 
+    // _____________________________________Crosshair______________________________________________________
+
+    vertex_buffer = init_vertex_buffer_pave_data(NB_VERTEX_PER_BUFFER + CROSSHAIR_BUF, 0.4, 0.05, 0.05, 0.1, 0.5, 1.0);
+    glGenBuffers(1, VERTEX_BUFFER_ID + CROSSHAIR_BUF);
+    glBindBuffer(GL_ARRAY_BUFFER, VERTEX_BUFFER_ID[CROSSHAIR_BUF]);
+    glBufferData(GL_ARRAY_BUFFER, 2 * NB_VERTEX_PER_BUFFER[CROSSHAIR_BUF] * NB_ATTRIBUTES_VERTEX * sizeof(float), vertex_buffer, GL_DYNAMIC_DRAW);
+
+    NB_INDEX_PER_BUFFER[CROSSHAIR_BUF] = 0;
+    INDEX_BUFFER_ID[CROSSHAIR_BUF] = 0;
+
 }
 
 unsigned int init_texture(const char* path)
@@ -262,7 +272,8 @@ void init()
                                           {"../res/shaders/skybox.vert",    "../res/shaders/skybox.frag"},
                                           {"../res/shaders/ground.vert",    "../res/shaders/ground.frag"},
                                           {"../res/shaders/shadow.vert",    "../res/shaders/shadow.frag"},
-                                          {"../res/shaders/axis.vert",      "../res/shaders/axis.frag"}};
+                                          {"../res/shaders/axis.vert",      "../res/shaders/axis.frag"},
+                                          {"../res/shaders/axis.vert",      "../res/shaders/crosshair.frag"}};
 
     for (int program_it = 0; program_it < NB_PROGRAMS; program_it++)
     {
