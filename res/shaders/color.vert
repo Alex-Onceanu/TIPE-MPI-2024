@@ -10,7 +10,6 @@ uniform mat4 u_Proj;
 varying vec3 v_Color;
 varying vec3 v_Normal;
 varying vec3 v_FragPos;
-varying vec3 v_CenterWorldPos;
 varying vec3 v_LocalPos;
 
 void main() {
@@ -19,6 +18,5 @@ void main() {
     v_Normal = vec3(vec4(a_Normal, 1.0) * (-u_Rotation));
     v_FragPos = vec3(vec4(a_Position, 1.0) * (u_Rotation * u_Translation));
 
-    v_CenterWorldPos = (vec4(0.0, 0.0, 0.0, 1.0) * (u_Rotation * u_Translation)).xyz;
     v_LocalPos = a_Position;
 }

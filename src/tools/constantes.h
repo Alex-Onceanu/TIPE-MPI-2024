@@ -2,7 +2,9 @@
 #define CONSTANTES_H
 
 #include <stdbool.h>
+#include "maths.h"
 
+// Temps écoulé depuis la frame précédente (multiplié par 60)
 extern double dt;
 
 // __________________________________Rendu 3D_____________________________________________
@@ -55,9 +57,7 @@ extern unsigned int INDEX_BUFFER_ID[NB_BUFFERS];
 #define SMALL_SPHERE_RADIUS 0.4
 
 // Position (de monde) de la source de lumière
-extern float SUN_X;
-extern float SUN_Y;
-extern float SUN_Z;
+extern force3_t SUN_POS;
 
 #define SUN_X_0 -8.0
 #define SUN_Y_0 20.0
@@ -89,6 +89,6 @@ extern float BALL_MASS;
 #define ROTATION_MU_0 0.02
 #define THROW_SPEED_0 1.5
 #define THROW_ANGLE_0 0.0
-#define BALL_MASS_0 1.46 // masse réelle d'une boule de petanque : 0,730 kg
+#define BALL_MASS_0 1.46
 
 #endif

@@ -84,6 +84,36 @@ const void* init_vertex_buffer_pave_data(unsigned int *nb_vertex, double width, 
     return vertex->data;
 }
 
+vertex_t* init_vertex_buffer_rect(unsigned int *nb_vertex, double width, double height, double r, double g, double b)
+{
+    double w = width / 2.0;
+    double h = 0.0;
+    double d = height / 2.0;
+
+    vertex_t vertex[] = {
+        // x, y, z, r, g, b, normale.x, normale.y, normale.z
+        Vertex(-w, h, d, r, g, b, 0.0, 1.0, 0.0),
+        Vertex(w, h, d, r, g, b, 0.0, 1.0, 0.0),
+        Vertex(w, h, -d, r, g, b, 0.0, 1.0, 0.0),
+        Vertex(-w, h, d, r, g, b, 0.0, 1.0, 0.0),
+        Vertex(w, h, -d, r, g, b, 0.0, 1.0, 0.0),
+        Vertex(-w, h, -d, r, g, b, 0.0, 1.0, 0.0)};
+
+    unsigned int tmp_nb_vertex = sizeof(vertex) / sizeof(vertex_t);
+    *nb_vertex = tmp_nb_vertex;
+
+    vertex_t *ans = malloc(sizeof(vertex));
+    memcpy(ans, vertex, sizeof(vertex));
+
+    return ans;
+}
+
+const void* init_vertex_buffer_rect_data(unsigned int *nb_vertex, double width, double height, double r, double g, double b)
+{
+    vertex_t *vertex = init_vertex_buffer_rect(nb_vertex, width, height, r, g, b);
+    return vertex->data;
+}
+
 vertex_t* init_vertex_buffer_sphere(unsigned int *nb_vertex, double rayon, double r, double g, double b)
 {
     // On génère une sphère comme l'ensemble des points à une distance rayon du point (0, 0, 0)
@@ -330,7 +360,7 @@ void model_3D_draw(model_3D_t this, materiau_t materiau, unsigned int program_in
 
     // Lumière : c'est une position, une couleur et une intensité de lumière ambientale.
     int u_Light = glGetUniformLocation(program, "u_Light");
-    glUniform3f(u_Light, SUN_X, SUN_Y, SUN_Z);
+    glUniform3f(u_Light, SUN_POS.fx, SUN_POS.fy, SUN_POS.fz);
     int u_LightColor = glGetUniformLocation(program, "u_LightColor");
     glUniform3f(u_LightColor, LIGHT_COLOR[0], LIGHT_COLOR[1], LIGHT_COLOR[2]);
     int u_AmbientIntensity = glGetUniformLocation(program, "u_AmbientIntensity");

@@ -22,7 +22,6 @@ uniform float u_Reflectivity;
 varying vec3 v_Color;
 varying vec3 v_Normal;
 varying vec3 v_FragPos;
-varying vec3 v_CenterWorldPos;
 varying vec3 v_LocalPos;
 
 
@@ -62,5 +61,4 @@ void main() {
     }
     else
         gl_FragColor = vec4(((1.0 - u_Reflectivity) * v_Color + u_Reflectivity * sky_color) * u_LightColor * (u_Material.ambient * u_AmbientIntensity + diffuse * u_Material.diffuse + specular * u_Material.specular), 1.0);
-    // gl_FragColor = vec4((1.0 - max(0.0, dot(true_normal, v_Normal))) * vec3(1.0, 1.0, 1.0), 1.0);
 }

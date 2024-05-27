@@ -11,8 +11,8 @@ typedef struct controller_camera
     controller_t super;
 
     force3_t pos;
-    float v;             // Vitesse de référence (pixels/frame)
-    float v_x, v_y, v_z; // Valent v, -v ou 0
+    float v;            // Vitesse de référence (pixels/frame)
+    force3_t speed;     // Les composantes valent v, -v ou 0
     float theta_x, theta_y;
     float w; // Vitesse angulaire de référence
     float w_x, w_y;

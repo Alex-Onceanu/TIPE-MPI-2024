@@ -17,8 +17,6 @@ uniform sampler2D u_Texture;
 
 uniform float u_AmbientIntensity;
 
-varying vec3 v_Color;
-varying vec3 v_Normal;
 varying vec3 v_FragPos;
 
 void main() {

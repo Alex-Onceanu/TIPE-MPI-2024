@@ -27,7 +27,7 @@ struct world
 };
 
 typedef struct world world_t, *world_p;
-void lance_boule(world_p);
+void throw_ball(world_p);
 
 #include "modelisation/init.h"
 
@@ -100,7 +100,7 @@ void world_add_event(world_p this, user_event_t e_t)
     vector_append(this->events, (void *)e_p);
 }
 
-void lance_boule(world_p this)
+void throw_ball(world_p this)
 {
     entity_p e = Entity(COLOR_PROGRAM);
     
@@ -129,21 +129,27 @@ void lance_boule(world_p this)
 void world_process_input(world_p this)
 {
     // En cas d'appui de la touche E on génère une boule et on la lance dans la bonne direction
-    user_event_p actuel;
+    user_event_p current;
 
-    // moche... revoir la façon de gérer les event
-    int n_events = vector_len(this->events);
-    for (int i = 0; i < n_events; i++)
+    // On va filtrer les évenements pour ne garder ici que ceux que world n'utilise pas
+    vector_p events_for_entities = vector_init();
+    bool already_thrown_ball = false;
+
+    while(vector_len(this->events) > 0)
     {
-        actuel = (user_event_p)vector_get_at(this->events, i);
-        switch (actuel->type)
+        current = (user_event_p)vector_pop(this->events);
+
+        // World gère l'appui de la touche E, et fait passer les autres évenements à ses entités
+        switch(current->type)
         {
-        case E_UP:
-            lance_boule(this);
-            i = n_events;
-            break;
-        default:
-            break;
+            case E_UP:
+                if(!already_thrown_ball) throw_ball(this);
+                already_thrown_ball = true;
+                free(current);
+                break;
+            default:
+                vector_append(events_for_entities, current);
+                break;
         }
     }
 
@@ -151,8 +157,16 @@ void world_process_input(world_p this)
     for (int i = 0; i < n_entities; ++i)
     {
         entity_p e = (entity_p)(vector_get_at(this->entities, i));
-        e->process_input(e, (void *)(this->events));
+        e->process_input(e, (void *)events_for_entities);
     }
+
+    // Après que toutes les entités aient utilisé le vecteur des évenements, on peut free tous ceux qui restent
+    while(vector_len(events_for_entities) > 0)
+    {
+        current = (user_event_p)vector_pop(events_for_entities);
+        free(current);
+    }
+    vector_free(events_for_entities);
 }
 
 void world_update(world_p this)

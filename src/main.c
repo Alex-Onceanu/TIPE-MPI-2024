@@ -24,14 +24,12 @@ unsigned int VERTEX_BUFFER_ID[NB_BUFFERS] = {0};
 unsigned int NB_INDEX_PER_BUFFER[NB_BUFFERS] = {0};
 unsigned int INDEX_BUFFER_ID[NB_BUFFERS] = {0};
 
-float SUN_X = SUN_X_0;
-float SUN_Y = SUN_Y_0;
-float SUN_Z = SUN_Z_0;
+force3_t SUN_POS;
 
 float LIGHT_COLOR[3] = {1.0, 1.0, 1.0};
 float AMBIENT_INTENSITY = 1.0;
 float BALL_REFLECTIVITY = BALL_REFLECTIVITY_0;
-bool SHOULD_RENDER_AXIS = true;
+bool SHOULD_RENDER_AXIS = false;
 
 float GRAVITY = GRAVITY_0;
 float FLUID_MU = FLUID_MU_0;
@@ -58,7 +56,7 @@ void debug()
 world_p world;
 
 double old_time = 0.0;
-double dt = 1.0; // en s ici
+double dt = 1.0;
 
 void update_dt(double time)
 {
@@ -73,13 +71,10 @@ void update_dt(double time)
         // Pour ne pas avoir d'explosion surprise..
         dt = old_dt;
     }
-
-    // if(dt > 0.6)
-        // printf("dt = %f\n", dt);
 }
 
 // Une seule itération de la boucle principale
-// Cette fonction est appelée 60 fois par seconde, correspond à 1 frame
+// Cette fonction est appelée ~60 fois par seconde, correspond à 1 frame
 EM_BOOL mainloop(double time, void *userData)
 {
     update_dt(time / 1000.0); // pour que time soit en secondes

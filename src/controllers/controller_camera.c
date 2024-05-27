@@ -9,114 +9,111 @@
 #include "../modelisation/model_3D.h"
 #include <GLES3/gl3.h>
 
-void controller_camera_process_input(controller_p this, void *data)
+void controller_camera_process_input(controller_p __this, void *data)
 {
-    controller_camera_p this2 = (controller_camera_p)this;
+    controller_camera_p this = (controller_camera_p)__this;
     vector_p events_vector = (vector_p)data;
-    user_event_p actuel;
+    user_event_p current;
     f_tuple_t *tup;
 
-    // !!!! CHANGER ÇA : il faut pas pop tous les event sinon les autres entités reçoivent le vecteur NULL
-    while (vector_len(events_vector) > 0)
+    int n_events = vector_len(events_vector);
+    for (int i = 0; i < n_events; i++)
     {
-        actuel = (user_event_p)vector_pop(events_vector);
+        current = (user_event_p)vector_get_at(events_vector, i);
 
-        switch (actuel->type)
+        switch (current->type)
         {
-        case CLICK_DOWN:
-            this2->clicks = true;
-            break;
-        case CLICK_UP:
-            this2->clicks = false;
-            this2->mouse_x = 0.0;
-            this2->mouse_y = 0.0;
-            break;
-        case MOUSE_MOVED:
-            tup = (f_tuple_t *)actuel->data;
-            this2->old_mouse_x = this2->mouse_x;
-            this2->old_mouse_y = this2->mouse_y;
-            this2->mouse_x = tup->x;
-            this2->mouse_y = tup->y;
-            free(tup);
-            break;
-        case W_DOWN:
-            this2->v_z = -this2->v;
-            break;
-        case W_UP:
-            this2->v_z = 0.0;
-            break;
-        case A_DOWN:
-            this2->v_x = -this2->v;
-            break;
-        case A_UP:
-            this2->v_x = 0.0;
-            break;
-        case S_DOWN:
-            this2->v_z = this2->v;
-            break;
-        case S_UP:
-            this2->v_z = 0.0;
-            break;
-        case D_DOWN:
-            this2->v_x = this2->v;
-            break;
-        case D_UP:
-            this2->v_x = 0.0;
-            break;
-        case SPACE_DOWN:
-            this2->v_y = this2->v;
-            break;
-        case SPACE_UP:
-            this2->v_y = 0.0;
-            break;
-        case SHIFT_DOWN:
-            this2->v_y = -this2->v;
-            break;
-        case SHIFT_UP:
-            this2->v_y = 0.0;
-            break;
-        default:
-            break;
+            case CLICK_DOWN:
+                this->clicks = true;
+                break;
+            case CLICK_UP:
+                this->clicks = false;
+                this->mouse_x = 0.0;
+                this->mouse_y = 0.0;
+                break;
+            // On est certain que le déplacement de la souris ne sera géré que par la caméra (principale)
+            case MOUSE_MOVED:
+                tup = (f_tuple_t *)current->data;
+                this->old_mouse_x = this->mouse_x;
+                this->old_mouse_y = this->mouse_y;
+                this->mouse_x = tup->x;
+                this->mouse_y = tup->y;
+                free(tup);
+                break;
+            case W_DOWN:
+                this->speed.fz = -this->v;
+                break;
+            case W_UP:
+                this->speed.fz = 0.0;
+                break;
+            case A_DOWN:
+                this->speed.fx = -this->v;
+                break;
+            case A_UP:
+                this->speed.fx = 0.0;
+                break;
+            case S_DOWN:
+                this->speed.fz = this->v;
+                break;
+            case S_UP:
+                this->speed.fz = 0.0;
+                break;
+            case D_DOWN:
+                this->speed.fx = this->v;
+                break;
+            case D_UP:
+                this->speed.fx = 0.0;
+                break;
+            case SPACE_DOWN:
+                this->speed.fy = this->v;
+                break;
+            case SPACE_UP:
+                this->speed.fy = 0.0;
+                break;
+            case SHIFT_DOWN:
+                this->speed.fy = -this->v;
+                break;
+            case SHIFT_UP:
+                this->speed.fy = 0.0;
+                break;
+            default:
+                break;
         }
-
-        free(actuel);
     }
 }
 
-void controller_camera_update(controller_p this)
+void controller_camera_update(controller_p __this)
 {
-    controller_camera_p this2 = (controller_camera_p)this;
+    controller_camera_p this = (controller_camera_p)__this;
 
-    float dvx = this2->v_x * cos(this2->theta_x) + this2->v_z * sin(-this2->theta_x);
-    float dvy = this2->v_y;
-    float dvz = this2->v_z * cos(this2->theta_x) - this2->v_x * sin(-this2->theta_x);
+    float dvx = this->speed.fx * cos(this->theta_x) + this->speed.fz * sin(-this->theta_x);
+    float dvy = this->speed.fy;
+    float dvz = this->speed.fz * cos(this->theta_x) - this->speed.fx * sin(-this->theta_x);
 
-    this2->direction.fx = sin(this2->theta_x) * cos(this2->theta_y);
-    this2->direction.fy = sin(this2->theta_y);
-    this2->direction.fz = -cos(this2->theta_x);
+    this->direction.fx = sin(this->theta_x) * cos(this->theta_y);
+    this->direction.fy = sin(this->theta_y);
+    this->direction.fz = -cos(this->theta_x);
 
-    this2->pos.fx += dvx * dt;
-    this2->pos.fy += dvy * dt;
-    this2->pos.fz += dvz * dt;
+    this->pos.fx += dvx * dt;
+    this->pos.fy += dvy * dt;
+    this->pos.fz += dvz * dt;
 
     for (int i = 0; i < NB_PROGRAMS; i++)
     {
         glUseProgram(PROGRAM_ID[i]);
         int u_CameraPos = glGetUniformLocation(PROGRAM_ID[i], "u_CameraPos");
-        glUniform3f(u_CameraPos, this2->pos.fx, this2->pos.fy, this2->pos.fz);
+        glUniform3f(u_CameraPos, this->pos.fx, this->pos.fy, this->pos.fz);
     }
 
-    Clamp(&(this2->pos.fy), -0.0, 40.0);
+    Clamp(&(this->pos.fy), -0.0, 40.0);
 
-    if (!this2->clicks || (this2->old_mouse_x == 0.0 && this2->old_mouse_y == 0.0) || (this2->mouse_x - this2->old_mouse_x <= 0.0001 && this2->mouse_x - this2->old_mouse_x >= -0.0001))
+    if (!this->clicks || (this->old_mouse_x == 0.0 && this->old_mouse_y == 0.0) || (this->mouse_x - this->old_mouse_x <= 0.0001 && this->mouse_x - this->old_mouse_x >= -0.0001))
         return;
 
-    this2->theta_x += 0.2 * PI * (this2->mouse_x - this2->old_mouse_x) * dt;
-    this2->theta_y += 0.2 * PI * (this2->mouse_y - this2->old_mouse_y) * dt;
+    this->theta_x += 0.2 * PI * (this->mouse_x - this->old_mouse_x) * dt;
+    this->theta_y += 0.2 * PI * (this->mouse_y - this->old_mouse_y) * dt;
 
-    Clamp(&(this2->theta_y), -PI / 2.0, PI / 2.0);
-
-    // printf("Theta_x : %f, theta_y : %f\n", this2->theta_x, this2->theta_y);
+    Clamp(&(this->theta_y), -PI / 2.0, PI / 2.0);
 }
 
 void update_crosshair(controller_camera_p this)
@@ -145,13 +142,13 @@ void update_crosshair(controller_camera_p this)
     glUniform1f(u_Omega, THROW_SPEED - 0.3);
 }
 
-void controller_camera_draw(controller_p this)
+void controller_camera_draw(controller_p __this)
 {
-    controller_camera_p this2 = (controller_camera_p)this;
+    controller_camera_p this = (controller_camera_p)__this;
     // inv_view est la matrice de transform de la caméra, pour avoir la vraie matrice view,
     // On utilisera son inverse (car on veut qu'en la multipliant par la transform de caméra, on obtienne l'identité)
-    mat4_t inv_view = translation(this2->pos.fx, this2->pos.fy, this2->pos.fz);
-    mat4_t rotations = mat4_produit(rotation_y_4(-this2->theta_x), rotation_x_4(this2->theta_y));
+    mat4_t inv_view = translation(this->pos.fx, this->pos.fy, this->pos.fz);
+    mat4_t rotations = mat4_produit(rotation_y_4(-this->theta_x), rotation_x_4(this->theta_y));
     mat4_ajoute_inplace(&inv_view, mat4_ajoute(rotations, mat4_scalaire(mat4_id_t(), -1.0)));
 
     mat4_t view = mat4_inverse(inv_view);
@@ -164,11 +161,11 @@ void controller_camera_draw(controller_p this)
         glUniformMatrix4fv(u_View, 1, GL_FALSE, view.coefs);
     }
 
-    update_crosshair(this2);
+    update_crosshair(this);
     model_3D_draw((model_3D_t){CROSSHAIR_BUF, NO_TEXTURE}, Materiau(SOLEIL), CROSSHAIR_PROGRAM);
 
-    this2->old_mouse_x = this2->mouse_x;
-    this2->old_mouse_y = this2->mouse_y;
+    this->old_mouse_x = this->mouse_x;
+    this->old_mouse_y = this->mouse_y;
 }
 
 controller_camera_p Controller_camera(force3_t pos0, force3_t dir0)
@@ -180,9 +177,7 @@ controller_camera_p Controller_camera(force3_t pos0, force3_t dir0)
 
     this->pos = pos0;
     this->v = 0.2;
-    this->v_x = 0.0;
-    this->v_y = 0.0;
-    this->v_z = 0.0;
+    this->speed = Force3(0.0, 0.0, 0.0);
     this->theta_x = 0.;
     this->theta_y = 0.;
     this->w = 0.003;

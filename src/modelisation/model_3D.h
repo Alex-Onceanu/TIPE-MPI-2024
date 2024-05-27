@@ -44,6 +44,9 @@ void model_3D_draw(model_3D_t this, materiau_t materiau, unsigned int program_id
 // Renvoie un pointeur vers la zone du tas où est alloué le vertex buffer d'un Pavé droit de dimensions width * height * depth aux couleurs r, g, b
 const void* init_vertex_buffer_pave_data(unsigned int *nb_vertex, double width, double height, double depth, double r, double g, double b);
 
+// Renvoie un pointeur vers la zone du tas où est alloué le vertex buffer d'un rectangle de dimensions width * height * depth aux couleurs r, g, b (il est dans Oxz)
+const void* init_vertex_buffer_rect_data(unsigned int *nb_vertex, double width, double height, double r, double g, double b);
+
 // Renvoie un pointeur vers la zone du tas où est alloué le vertex buffer d'une sphère de rayon r aux couleurs r, g, b
 const void* init_vertex_buffer_sphere_data(unsigned int *nb_vertex, double rayon, double r, double g, double b);
 

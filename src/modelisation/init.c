@@ -120,7 +120,7 @@ void init_buffers()
 
     // ________________________________________Ombre_____________________________________________________
 
-    vertex_buffer = init_vertex_buffer_pave_data(NB_VERTEX_PER_BUFFER + SHADOW_BUF, 2.0 * BIG_SPHERE_RADIUS, 0.5, 2.0 * BIG_SPHERE_RADIUS, 0.01, 0.01, 0.01);
+    vertex_buffer = init_vertex_buffer_rect_data(NB_VERTEX_PER_BUFFER + SHADOW_BUF, 2.0 * BIG_SPHERE_RADIUS, 2.0 * BIG_SPHERE_RADIUS, 0.01, 0.01, 0.01);
     glGenBuffers(1, VERTEX_BUFFER_ID + SHADOW_BUF);
     glBindBuffer(GL_ARRAY_BUFFER, VERTEX_BUFFER_ID[SHADOW_BUF]);
     glBufferData(GL_ARRAY_BUFFER, 2 * NB_VERTEX_PER_BUFFER[SHADOW_BUF] * NB_ATTRIBUTES_VERTEX * sizeof(float), vertex_buffer, GL_DYNAMIC_DRAW);
@@ -168,7 +168,7 @@ unsigned int init_texture(const char* path)
     // On attache une image 2d à un texture object
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 
-    glGenerateMipmap(GL_TEXTURE_2D); // INVALID_OPERATION
+    glGenerateMipmap(GL_TEXTURE_2D);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -213,9 +213,6 @@ unsigned int init_cubemap(const char *paths[6], bool skybox)
             // On set des informations et l'image-même de la face GL_TEXTURE_CUBE_MAP_POSITIVE_X + i
             // (c'est un sous-enum de GL_TEXTURE_CUBE_MAP représentant la i-ième face)
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-            // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-            // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-            // + CURRENT_TEXTURE_ID * 6 en haut
         }
     }
 
@@ -258,6 +255,7 @@ unsigned int init_cubemap(const char *paths[6], bool skybox)
 void init()
 {
     srand(time(NULL));
+    SUN_POS = Force3(SUN_X_0, SUN_Y_0, SUN_Z_0);
 
     // initialisation de EmscriptenWebGLContextAttributes
     EmscriptenWebGLContextAttributes attr;

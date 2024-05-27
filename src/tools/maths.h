@@ -12,7 +12,7 @@ float my_sqrtf(float x);
 // Renvoie un nombre aleatoire de [| a, b |] (Ne pas oublier l'appel de srand avant)
 int randint(int a, int b);
 
-// Fait en sorte que x reste dans [| min_x, max_x |]
+// Fait en sorte que x reste dans [ min_x, max_x ]
 void Clamp(float *x, float min_x, float max_x);
 
 // _______________________________Vecteur force________________________________
