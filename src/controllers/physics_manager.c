@@ -216,8 +216,8 @@ void physics_manager_update(controller_p this2)
                 {
                     float sign1 = (float)randint(0, 1) * 2.0 - 1.0;
                     float sign2 = (float)randint(0, 1) * 2.0 - 1.0;
-                    noise_x = sign1 * (2.0 / 10000) * (float)randint(1, 1000);
-                    noise_z = sign2 * (2.0 / 10000) * (float)randint(1, 1000);
+                    noise_x = sign1 * (1.0 / 20000) * (float)randint(1, 1000);
+                    noise_z = sign2 * (1.0 / 20000) * (float)randint(1, 1000);
                 }
 
                 // Vaut 1 si vx > 0, -1 sinon (idem pour z)

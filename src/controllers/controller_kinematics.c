@@ -42,10 +42,11 @@ void controller_kinematics_update(controller_p __this)
     this->pos = LINEAR_COMBINATION(this->pos, this->speed, dt);
 
     // TMC : on obtient une accélération angulaire à partir de la somme des moments des forces s'appliquant à cet objet
-    // m dw/dt = somme des OM ^ F donc dw = somme des OM ^ F * dt / m
+    // J dw/dt = somme des OM ^ F donc dw = somme des OM ^ F * dt / J et J = 0.4 * m * R^2
     
     this->old_omega = this->omega;
-    this->omega = LINEAR_COMBINATION(this->omega, moment_total, (dt / this->mass));
+    float J = 0.4 * this->mass * this->radius * this->radius;
+    this->omega = LINEAR_COMBINATION(this->omega, moment_total, (dt / J));
 
     // On intègre omega : theta = somme des [omega * dt] (méthode d'Euler)
     this->theta = LINEAR_COMBINATION(this->theta, this->omega, dt);

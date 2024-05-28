@@ -79,6 +79,10 @@ EM_BOOL mainloop(double time, void *userData)
 {
     update_dt(time / 1000.0); // pour que time soit en secondes
 
+    // Décommenter ça pour faire tourner le soleil ici
+    // SUN_POS.fx = SUN_X_0 * cos(time / 500.0) - SUN_Z_0 * sin(time / 500.0);
+    // SUN_POS.fz = SUN_X_0 * sin(time / 500.0) + SUN_Z_0 * cos(time / 500.0);
+
     // Process input : gérer l'entrée utilisateur
     world_process_input(world);
 
