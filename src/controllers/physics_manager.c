@@ -184,7 +184,7 @@ void physics_manager_update(controller_p this2)
         float v = norme2(tmp_controller->speed);
 
         // Frottements fluides
-        controller_kinematics_add_force(tmp_controller, force3_scale(tmp_controller->speed, tmp_controller->mass > 0.9 ? -FLUID_MU : -0.02), tmp_controller->pos);
+        controller_kinematics_add_force(tmp_controller, force3_scale(tmp_controller->speed, -FLUID_MU), tmp_controller->pos);
 
         // La rotation doit petit a petit s'attenuer
         float w = norme2(tmp_controller->omega);
@@ -261,7 +261,7 @@ void physics_manager_update(controller_p this2)
             {
                 if (v_proj > 0.01)
                 {
-                    force3_t frottements_solides = force3_scale(speed_proj, -0.002);
+                    force3_t frottements_solides = force3_scale(speed_proj, -0.015);
 
                     controller_kinematics_add_force(tmp_controller, frottements_solides, contact_sol);
                 }
@@ -271,11 +271,14 @@ void physics_manager_update(controller_p this2)
                 }
             }
 
-            // C'est l'heure de faire avancer les boules qui roulent
-            force3_t NR = Force3(0.0, tmp_controller->radius, 0.0);                 // Vecteur normal au sol de norme R
-            force3_t rolling = force3_cross_product(tmp_controller->omega, NR);     // De norme R * w * sin(w, N)
+            if(tmp_controller->mass > 0.9)
+            {
+                // C'est l'heure de faire avancer les boules qui roulent
+                force3_t NR = Force3(0.0, tmp_controller->radius, 0.0);                 // Vecteur normal au sol de norme R
+                force3_t rolling = force3_cross_product(tmp_controller->omega, NR);     // De norme R * w * sin(w, N)
 
-            controller_kinematics_add_force(tmp_controller, rolling, contact_sol);
+                controller_kinematics_add_force(tmp_controller, rolling, contact_sol);
+            }
         }
         else if (v > 0.01 || tmp_controller->pos.fy > 0.01 + tmp_controller->radius - 1.0)
         {
