@@ -55,6 +55,8 @@ void controller_kinematics_update(controller_p __this)
 
     float new_angle = fmodf(angle, 2.0 * PI);
     this->theta = force3_scale(this->theta, new_angle);
+    
+    // Décommenter ceci pour débug à l'aide de l'énergie
 
     // float Ep = this->mass * GRAVITY * this->pos.fy;
     // float Ec = 0.5 * this->mass * SQ_NORME2(this->speed);
@@ -95,7 +97,7 @@ void controller_kinematics_draw(controller_p __this)
     u_Rotation = glGetUniformLocation(program, "u_Rotation");
     glUniformMatrix4fv(u_Rotation, 1, GL_FALSE, mat4_get(&rotation));
 
-    if (this->radius > 0.000001)
+    if (this->radius > 0.9)
     {
         // Si cet objet est une boule, mettre à jour l'uniform des axes de rotation
         program = PROGRAM_ID[AXIS_PROGRAM];
@@ -113,14 +115,30 @@ void controller_kinematics_draw(controller_p __this)
         int u_Omega = glGetUniformLocation(program, "u_Omega");
         glUniform1f(u_Omega, w * 10.0);
     }
+    if(this->radius > 0.001)
+    {
+        // Mettre à jour le rayon de la boule en cours
+        program = PROGRAM_ID[SHADOW_PROGRAM];
+        glUseProgram(program);
+
+        int u_Radius = glGetUniformLocation(program, "u_Radius");
+        glUniform1f(u_Radius, this->radius);
+
+        program = PROGRAM_ID[COLOR_PROGRAM];
+        glUseProgram(program);
+
+        u_Radius = glGetUniformLocation(program, "u_Radius");
+        glUniform1f(u_Radius, this->radius);
+    }
 }
 
-controller_kinematics_p Controller_kinematics(float __mass, force3_t initial_pos, force3_t initial_theta, physics_manager_p manager)
+controller_kinematics_p Controller_kinematics(float __mass, force3_t initial_pos, force3_t initial_theta, physics_manager_p manager, float radius)
 {
     controller_kinematics_p this = malloc(sizeof(controller_kinematics_t));
     this->super.process_input = id_for_process_input;
     this->super.update = controller_kinematics_update;
     this->super.draw = controller_kinematics_draw;
+    this->super.free = controller_free;
 
     this->mass = __mass;
 
@@ -139,7 +157,7 @@ controller_kinematics_p Controller_kinematics(float __mass, force3_t initial_pos
     if (manager != NULL)
     {
         physics_manager_add_controller_kinematics(manager, this);
-        this->radius = 1.0;
+        this->radius = radius;
     }
     else
     {
@@ -147,11 +165,6 @@ controller_kinematics_p Controller_kinematics(float __mass, force3_t initial_pos
     }
 
     return this;
-}
-
-void controller_kinematics_free(controller_kinematics_p this)
-{
-    free(this);
 }
 
 void controller_kinematics_add_force(controller_kinematics_p this, force3_t f, force3_t c)

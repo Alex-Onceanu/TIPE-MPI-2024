@@ -68,8 +68,8 @@ char *read_shader(const char *filename)
 
 void init_buffers()
 {
-    const void *vertex_buffer;
-    const void *index_buffer;
+    void* vertex_buffer;
+    void* index_buffer;
 
     // __________________________________________SOL________________________________________________________
 
@@ -83,6 +83,8 @@ void init_buffers()
     NB_INDEX_PER_BUFFER[GROUND_BUF] = 0;
     INDEX_BUFFER_ID[GROUND_BUF] = 0;
 
+    free(vertex_buffer);
+
     // _________________________________________CUBE________________________________________________________
 
     vertex_buffer = init_vertex_buffer_pave_data(NB_VERTEX_PER_BUFFER + CUBE_TEST_BUF, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0);
@@ -92,6 +94,8 @@ void init_buffers()
 
     NB_INDEX_PER_BUFFER[CUBE_TEST_BUF] = 0;
     INDEX_BUFFER_ID[CUBE_TEST_BUF] = 0;
+
+    free(vertex_buffer);
 
     // ________________________________________boule de pétanque________________________________________
 
@@ -106,9 +110,11 @@ void init_buffers()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, INDEX_BUFFER_ID[SPHERE_BIG_BUF]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, NB_INDEX_PER_BUFFER[SPHERE_BIG_BUF] * sizeof(unsigned int), index_buffer, GL_DYNAMIC_DRAW);
 
+    free(vertex_buffer);
+
     // ________________________________________Cochonnet_____________________________________________
 
-    vertex_buffer = init_vertex_buffer_sphere_data(NB_VERTEX_PER_BUFFER + SPHERE_SMALL_BUF, SMALL_SPHERE_RADIUS, 1.0, 1.0, 1.0);
+    vertex_buffer = init_vertex_buffer_sphere_data(NB_VERTEX_PER_BUFFER + SPHERE_SMALL_BUF, SMALL_SPHERE_RADIUS, 1.0, 0.0, 0.0);
     glGenBuffers(1, VERTEX_BUFFER_ID + SPHERE_SMALL_BUF);
     glBindBuffer(GL_ARRAY_BUFFER, VERTEX_BUFFER_ID[SPHERE_SMALL_BUF]);
     glBufferData(GL_ARRAY_BUFFER, 2 * NB_VERTEX_PER_BUFFER[SPHERE_SMALL_BUF] * NB_ATTRIBUTES_VERTEX * sizeof(float), vertex_buffer, GL_DYNAMIC_DRAW);
@@ -117,6 +123,8 @@ void init_buffers()
     glGenBuffers(1, INDEX_BUFFER_ID + SPHERE_SMALL_BUF);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, INDEX_BUFFER_ID[SPHERE_SMALL_BUF]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, NB_INDEX_PER_BUFFER[SPHERE_SMALL_BUF] * sizeof(unsigned int), index_buffer, GL_DYNAMIC_DRAW);
+
+    free(vertex_buffer);
 
     // ________________________________________Ombre_____________________________________________________
 
@@ -128,6 +136,8 @@ void init_buffers()
     NB_INDEX_PER_BUFFER[SHADOW_BUF] = 0;
     INDEX_BUFFER_ID[SHADOW_BUF] = 0;
 
+    free(vertex_buffer);
+
     //  _____________________________________Axe de rotation _____________________________________________
 
     vertex_buffer = init_vertex_buffer_pave_data(NB_VERTEX_PER_BUFFER + AXIS_BUF, 4.0, 0.2, 0.2, 0.3, 1.0, 0.3);
@@ -137,6 +147,8 @@ void init_buffers()
 
     NB_INDEX_PER_BUFFER[AXIS_BUF] = 0;
     INDEX_BUFFER_ID[AXIS_BUF] = 0;
+
+    free(vertex_buffer);
 
     // _____________________________________Crosshair______________________________________________________
 
@@ -148,6 +160,7 @@ void init_buffers()
     NB_INDEX_PER_BUFFER[CROSSHAIR_BUF] = 0;
     INDEX_BUFFER_ID[CROSSHAIR_BUF] = 0;
 
+    free(vertex_buffer);
 }
 
 unsigned int init_texture(const char* path)
@@ -288,4 +301,20 @@ void init()
     }
 
     init_buffers();
+}
+
+void free_gl()
+{
+    for(int i = 0; i < NB_PROGRAMS; i++)
+    {
+        glDeleteProgram(PROGRAM_ID[i]);
+    }
+
+    glDeleteBuffers(NB_BUFFERS, VERTEX_BUFFER_ID);
+    glDeleteBuffers(NB_BUFFERS, INDEX_BUFFER_ID);
+}
+
+void free_texture(unsigned int id)
+{
+    glDeleteTextures(1, &id);
 }

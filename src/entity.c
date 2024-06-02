@@ -6,7 +6,7 @@
 #include "tools/constantes.h"
 #include "controllers/controller.h"
 
-// Les 3 fonctions des entity de base
+// Les 3 fonctions des entity de base (4 avec la méthode "free")
 // Appellent leur equivalent pour chacun des controlleurs de l'entity
 
 void entity_process_input(entity_p this, void *data)
@@ -54,10 +54,12 @@ entity_p Entity(unsigned int __program_index)
 
 void entity_free(entity_p this)
 {
+    controller_p c;
     for (int i = 0; i < vector_len(this->controllers); ++i)
     {
-        // Transformation de void* en entity_t*
-        controller_free((controller_p)vector_get_at(this->controllers, i));
+        // Transformation magique de void* en controller_t*
+        c = (controller_p)vector_get_at(this->controllers, i);
+        c->free(c);
     }
     vector_free(this->controllers);
     free(this);

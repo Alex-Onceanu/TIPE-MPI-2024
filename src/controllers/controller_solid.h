@@ -13,7 +13,7 @@ typedef struct controller_solid
     materiau_t materiau;
 } controller_solid_t, *controller_solid_p;
 
-// Constructeur (!! __model doit être aupréalablement alloué sur le tas)
+// Constructeur (!! __model doit être aupréalablement alloué)
 controller_solid_p Controller_solid(model_3D_t __model, MATERIAU_TYPE_t materiau_type);
 
 #endif

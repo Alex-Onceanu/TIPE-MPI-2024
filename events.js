@@ -1,7 +1,11 @@
 var finished_loading = false;
 
-onload = function (e) {
+onLoad = function (e) {
     Module.onRuntimeInitialized = () => { finished_loading = true; };
+}
+
+onExit = function (e) {
+    Module.ccall('free_everything');
 }
 
 function clamp(pos, min_x, max_x, min_y, max_y) {

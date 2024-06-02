@@ -92,9 +92,17 @@ EM_BOOL mainloop(double time, void *userData)
     // Draw : rendu de la scène à l'état actuel
     world_draw(world);
 
-    debug();
+    // debug();
 
     return EM_TRUE;
+}
+
+// Cette fonction déclenche une réaction en chaîne et libère toute la mémoire allouée manuellement
+// On la lance depuis events.js quand l'utilisateur ferme le programme (ici la page web)
+void free_everything()
+{
+    free_gl();
+    world_free(world);
 }
 
 int main()
@@ -125,8 +133,6 @@ int main()
 
     // Le mainloop est ici
     emscripten_request_animation_frame_loop(mainloop, NULL);
-
-    //  ??? Comment free sur emscripten ? Ou le placer dans le destructeur de World ?
 
     return 0;
 }

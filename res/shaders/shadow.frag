@@ -24,6 +24,7 @@ varying float v_ObjY;
 varying vec3 v_FragWorldPos;
 varying vec3 v_CenterWorldPos;
 varying float v_Xscale;
+varying float v_Radius;
 
 float smoothmax(float a, float b, float k)
 {
@@ -45,7 +46,7 @@ void main() {
 
     float smooth_edges = 0.4;
     float drop_shadow = (smoothstep(0.0, 1.0, 4.0 / v_Xscale)) * (1.0 - smoothstep(smooth_edges, 1.0, v_FragPos.x * v_FragPos.x + v_FragPos.z * v_FragPos.z));
-    float ortho_shadow = 1.0 - smoothstep(smooth_edges, 1.0, length(v_FragWorldPos.xz - v_CenterWorldPos.xz));
+    float ortho_shadow = 1.0 - smoothstep(smooth_edges, v_Radius, length(v_FragWorldPos.xz - v_CenterWorldPos.xz));
     float is_frag_transparent = smoothstep(0.1, 1.0, smoothmax(drop_shadow, ortho_shadow, smooth_edges));
     
     gl_FragColor = vec4(v_Color * u_LightColor * (u_Material.ambient * u_AmbientIntensity + diffuse * u_Material.diffuse + specular * u_Material.specular), 0.4 * smoothstep(0.0, 1.0, 3.0 / v_ObjY) * is_frag_transparent);

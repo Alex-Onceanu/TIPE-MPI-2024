@@ -5,7 +5,11 @@
 
 typedef struct world world_t, *world_p;
 
+// Constructeur
 world_p world_init();
+
+// Destructeur
+void world_free(world_p this);
 
 void world_process_input(world_p this);
 void world_update(world_p this);

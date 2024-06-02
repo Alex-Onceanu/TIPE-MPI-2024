@@ -174,6 +174,7 @@ controller_camera_p Controller_camera(force3_t pos0, force3_t dir0)
     this->super.process_input = controller_camera_process_input;
     this->super.update = controller_camera_update;
     this->super.draw = controller_camera_draw;
+    this->super.free = controller_free;
 
     this->pos = pos0;
     this->v = 0.2;

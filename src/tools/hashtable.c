@@ -38,7 +38,7 @@ MAILLON *suivant(MAILLON *m)
 
 void maillon_free(MAILLON *m)
 {
-    // free(m->key);
+    free(m->key);
     free(m);
 }
 
@@ -225,22 +225,4 @@ void free_dict(DICT *d)
     }
     free(d->t);
     free(d);
-}
-
-//____________________Fonctionalites additionnelles___________________________
-
-void free_keys(DICT *d)
-{
-    assert(d != NULL);
-
-    MAILLON *curs = NULL;
-    for (int i = 0; i < d->m; ++i)
-    {
-        curs = d->t[i]->tete;
-        while (curs != NULL)
-        {
-            free(curs->key);
-            curs = curs->suiv;
-        }
-    }
 }

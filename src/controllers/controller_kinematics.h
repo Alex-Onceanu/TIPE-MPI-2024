@@ -44,10 +44,7 @@ typedef struct controller_kinematics
 #include "physics_manager.h"
 
 // Constructeur
-controller_kinematics_p Controller_kinematics(float __mass, force3_t initial_pos, force3_t initial_theta, physics_manager_p manager);
-
-// Destructeur
-void controller_kinematics_free(controller_kinematics_p this);
+controller_kinematics_p Controller_kinematics(float __mass, force3_t initial_pos, force3_t initial_theta, physics_manager_p manager, float radius);
 
 // Ajoute la force de vecteur f et de point d'application om à la liste de forces s'appliquant à cet objet
 void controller_kinematics_add_force(controller_kinematics_p this, force3_t f, force3_t c);

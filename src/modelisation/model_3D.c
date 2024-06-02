@@ -78,7 +78,7 @@ vertex_t* init_vertex_buffer_pave(unsigned int *nb_vertex, double width, double 
     return ans;
 }
 
-const void* init_vertex_buffer_pave_data(unsigned int *nb_vertex, double width, double height, double depth, double r, double g, double b)
+void* init_vertex_buffer_pave_data(unsigned int *nb_vertex, double width, double height, double depth, double r, double g, double b)
 {
     vertex_t *vertex = init_vertex_buffer_pave(nb_vertex, width, height, depth, r, g, b);
     return vertex->data;
@@ -108,7 +108,7 @@ vertex_t* init_vertex_buffer_rect(unsigned int *nb_vertex, double width, double 
     return ans;
 }
 
-const void* init_vertex_buffer_rect_data(unsigned int *nb_vertex, double width, double height, double r, double g, double b)
+void* init_vertex_buffer_rect_data(unsigned int *nb_vertex, double width, double height, double r, double g, double b)
 {
     vertex_t *vertex = init_vertex_buffer_rect(nb_vertex, width, height, r, g, b);
     return vertex->data;
@@ -156,7 +156,7 @@ vertex_t* init_vertex_buffer_sphere(unsigned int *nb_vertex, double rayon, doubl
     return vertex_buffer;
 }
 
-const void* init_vertex_buffer_sphere_data(unsigned int *nb_vertex, double rayon, double r, double g, double b)
+void* init_vertex_buffer_sphere_data(unsigned int *nb_vertex, double rayon, double r, double g, double b)
 {
     vertex_t *ans = init_vertex_buffer_sphere(nb_vertex, rayon, r, g, b);
     return ans->data;
@@ -244,67 +244,20 @@ unsigned int* init_index_buffer_sphere(unsigned int *nb_index)
 
 // _______________________________________Model_3D____________________________________
 
-// Crise existentielle sur l'intérêt de cette structure
-// à corriger ASAP
+model_3D_t Model3D(MODEL_TYPE_t type, unsigned int cubemap, unsigned int texture)
+{
+    return (model_3D_t){ type,cubemap,texture };
+}
 
-// model_3D_t Model_3D(unsigned int __nb_vertex, vertex_t *__vertex_buffer, unsigned int __nb_index, unsigned int *__index_buffer, const char* cube_images[6])
-// {
-//     model_3D_t this = malloc(sizeof(model_3D_t));
+void model_3D_free(model_3D_t this)
+{
+    if(this.cubemap_id != NO_TEXTURE)
+        free_texture(this.cubemap_id);
 
-//     this->nb_vertex = __nb_vertex;
-//     this->vertex_buffer = __vertex_buffer;
-//     this->nb_index = __nb_index;
-//     this->index_buffer = __index_buffer;
-
-//     if(cube_images == NULL) this->cubemap_id = NO_TEXTURE;
-//     else this->cubemap_id = init_cubemap(cube_images);
-
-//     return this;
-// }
-
-// model_3D_t Sphere(double rayon, double __r, double __g, double __b)
-// {
-//     unsigned int nb_vertex;
-//     vertex_t *vertex_buffer = init_vertex_buffer_sphere(&nb_vertex, rayon, r, g, b);
-
-//     unsigned int nb_index;
-//     unsigned int *index_buffer = init_index_buffer_sphere(&nb_index, rayon, r, g, b);
-
-//     return Model_3D(nb_vertex, vertex_buffer, nb_index, index_buffer, NULL);
-// }
-
-// model_3D_t Pave(double width, double height, double depth, double r, double g, double b, const char* cube_images[6])
-// {
-//     unsigned int nb_vertex;
-//     vertex_t* vertex = init_vertex_buffer_pave(&nb_vertex, width, height, depth, r, g, b);
-    
-//     return Model_3D(nb_vertex, vertex, 0, NULL, cube_images);
-// }
-
-// model_3D_t Cube(double c, double r, double g, double b, const char* cube_images[6])
-// {
-//     return Pave(c, c, c, r, g, b, cube_images);
-// }
-
-/*
-if(this.model_id == SPHERE_BIG_BUF)
-    {
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, this.cubemap_id);
-
-        unsigned int u_NormalMap = glGetUniformLocation(program, "u_NormalMap");
-        glUniform1i(u_NormalMap, 1);
-    }
-    else if(this.model_id == CUBE_TEST_BUF)
-    {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, this.cubemap_id);
-
-        unsigned int u_Cubemap = glGetUniformLocation(program, "u_Cubemap");
-        glUniform1i(u_Cubemap, 0);
-    }
-*/
-
+    // Les boules de pétanque partagent une même normal map qui est libérée dans world
+    if(this.model_id != SPHERE_BIG_BUF && this.texture_id != NO_TEXTURE)
+        free_texture(this.texture_id);
+}
 
 void model_3D_draw(model_3D_t this, materiau_t materiau, unsigned int program_index)
 {

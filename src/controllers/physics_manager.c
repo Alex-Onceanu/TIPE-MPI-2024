@@ -54,7 +54,7 @@ void apply_collision_force(controller_kinematics_p c1, controller_kinematics_p c
     if (SQ_NORME2(v_diff) <= 0.00001)
     {
         // Cas où les deux boules sont en collision mais quasi-immobiles (ou avancent ensemble dans la même direction)
-        printf("HUH ? LES BOUULES SONT EN COLLISION MAIS SANS BOUGER ?\n");
+        printf("Impossible d'appliquer une force de collision\n");
         return;
     }
     else
@@ -68,8 +68,23 @@ void apply_collision_force(controller_kinematics_p c1, controller_kinematics_p c
     force3_t F2 = force3_scale(impact_direction, F2_norm);
     force3_t impact_pos = LINEAR_COMBINATION(c2->pos, impact_direction, c2->radius);
 
-    controller_kinematics_add_force(c1, F1, impact_pos);
-    controller_kinematics_add_force(c2, F2, impact_pos);
+    // Bug : les boules deviennent couplées puis explosent lorsque la collision est purement verticale
+    force3_t normal = Force3(0.0, 1.0, 0.0);
+    float is_impact_vertical = DOT_PRODUCT(normal, impact_direction);
+    if(is_impact_vertical > 0.95)
+    {
+        controller_kinematics_add_force(c1, F1, impact_pos);
+    }
+    else if(is_impact_vertical < -0.95)
+    {
+        controller_kinematics_add_force(c2, F2, impact_pos);
+    }
+    else
+    {
+        // 99% du temps on sera dans ce cas
+        controller_kinematics_add_force(c1, F1, impact_pos);
+        controller_kinematics_add_force(c2, F2, impact_pos);
+    }
 
     // C'est l'heure de faire tourner les boules qui entrent en collision (modélisation du frottement solide boule contre boule)
     force3_t spin_1 = force3_cross_product(Force3(0.0, -c1->radius, 0.0), c1->speed);
@@ -115,8 +130,9 @@ void physics_manager_update_collisions(physics_manager_p this, int nb_controller
         {
             tmp_controller_2 = (controller_kinematics_p)vector_get_at(this->kinematic_controllers, j);
 
-            // string_of_pointer_couple : stocke sous forme de string le couple des deux boules pour en faire une KEY de DICT
-            char sopc[21];
+            // sopc = string_of_pointer_couple : stocke sous forme de string le couple des deux boules pour en faire une KEY de DICT
+            char* sopc = malloc(21 * sizeof(char));
+            sopc[20] = '\0';
             snprintf(sopc, 20, "%p%p", (void *)tmp_controller, (void *)tmp_controller_2);
             if (!appartient(this->colliding, sopc))
             {
@@ -125,23 +141,17 @@ void physics_manager_update_collisions(physics_manager_p this, int nb_controller
 
             if (collision(tmp_controller, tmp_controller_2))
             {
-                printf("Collision !\n");
-
                 // Diminuer de 1 le cooldown du couple puis continue (s'il existe), sinon appliquer la force de collision et mettre le cooldown du couple a MAX_COOLDOWN
                 if (appartient(this->colliding, sopc))
                 {
                     int v = rechercher(this->colliding, sopc);
                     supprimer(this->colliding, sopc);
                     inserer(this->colliding, sopc, v > 0 ? (v - 1) : MAX_COOLDOWN);
-                    printf("Pas le droit d'appliquer la force : v = %d\n", v);
                     continue;
                 }
 
-                printf("Tout va bien, on a le droit d'appliquer la force\n");
-
                 // On n'appliquera plus de force à ce couple pendant "cooldown" frames
                 int cooldown = MAX_COOLDOWN;
-
 
                 inserer(this->colliding, sopc, cooldown);
 
@@ -154,8 +164,6 @@ void physics_manager_update_collisions(physics_manager_p this, int nb_controller
                 {
                     int v = rechercher(this->colliding, sopc);
                     supprimer(this->colliding, sopc);
-                    // if (v > 0)
-                        // inserer(this->colliding, sopc, v - 1);
                 }
             }
         }
@@ -176,7 +184,7 @@ void physics_manager_update(controller_p this2)
         float v = norme2(tmp_controller->speed);
 
         // Frottements fluides
-        controller_kinematics_add_force(tmp_controller, force3_scale(tmp_controller->speed, -FLUID_MU), tmp_controller->pos);
+        controller_kinematics_add_force(tmp_controller, force3_scale(tmp_controller->speed, tmp_controller->mass > 0.9 ? -FLUID_MU : -0.02), tmp_controller->pos);
 
         // La rotation doit petit a petit s'attenuer
         float w = norme2(tmp_controller->omega);
@@ -193,15 +201,15 @@ void physics_manager_update(controller_p this2)
             tmp_controller->omega = Force3(0.0, 0.0, 0.0);
         }
 
-        if (tmp_controller->pos.fy <= 0.0)
+        if (tmp_controller->pos.fy <= tmp_controller->radius - 1.0)
         {
-            tmp_controller->pos.fy = 0.0;
+            tmp_controller->pos.fy = tmp_controller->radius - 1.0;
             force3_t contact_sol = force3_add(tmp_controller->pos, Force3(0.0, -tmp_controller->radius, 0.0));
             force3_t speed_proj = Force3(tmp_controller->speed.fx, 0.0, tmp_controller->speed.fz);
             float v_proj = norme2(speed_proj);
 
             // Rebond sur le sol (réaction du support)
-            if (ABS(tmp_controller->speed.fy) > 0.1)
+            if (f_abs(tmp_controller->speed.fy) > 0.1)
             {
                 controller_kinematics_add_force(tmp_controller,
                                                 Force3(0.0, -tmp_controller->mass * tmp_controller->speed.fy * boing_coef / dt, 0.0),
@@ -224,27 +232,43 @@ void physics_manager_update(controller_p this2)
                 float speed_direction_x = tmp_controller->speed.fx >= 0.0 ? 1.0 : -1.0;
                 float speed_direction_z = tmp_controller->speed.fz >= 0.0 ? 1.0 : -1.0;
 
-                controller_kinematics_add_force(tmp_controller, Force3(v * noise_x, 0.0, v * noise_z), contact_sol);
+                // controller_kinematics_add_force(tmp_controller, Force3(v * noise_x, 0.0, v * noise_z), contact_sol);
             }
 
-            // Frottements solides : de norme μ * m * g tant que la vitesse et grande
-            if (v_proj > SOLID_MU * tmp_controller->mass * GRAVITY)
+            if(tmp_controller->mass > 0.9)
             {
-                force3_t frottements_solides = force3_scale(speed_proj,
-                                                            -SOLID_MU * tmp_controller->mass * GRAVITY / v_proj);
+                // Frottements solides : de norme μ * m * g tant que la vitesse est grande
+                if (v_proj > SOLID_MU * tmp_controller->mass * GRAVITY)
+                {
+                    force3_t frottements_solides = force3_scale(speed_proj,
+                                                                -SOLID_MU * tmp_controller->mass * GRAVITY / v_proj);
 
-                controller_kinematics_add_force(tmp_controller, frottements_solides, contact_sol);
-            }
-            // Deviennent des frottements linéaires quand la vitesse est faible
-            if (v_proj > 0.001)
-            {
-                force3_t frottements_solides = force3_scale(speed_proj, -SOLID_MU);
+                    controller_kinematics_add_force(tmp_controller, frottements_solides, contact_sol);
+                }
+                // Deviennent des frottements linéaires quand la vitesse est faible
+                if (v_proj > 0.001)
+                {
+                    force3_t frottements_solides = force3_scale(speed_proj, -SOLID_MU);
 
-                controller_kinematics_add_force(tmp_controller, frottements_solides, contact_sol);
+                    controller_kinematics_add_force(tmp_controller, frottements_solides, contact_sol);
+                }
+                else if(tmp_controller->mass)
+                {
+                    tmp_controller->speed = Force3(0.0, tmp_controller->speed.fy, 0.0);
+                }
             }
             else
             {
-                tmp_controller->speed = Force3(0.0, tmp_controller->speed.fy, 0.0);
+                if (v_proj > 0.01)
+                {
+                    force3_t frottements_solides = force3_scale(speed_proj, -0.002);
+
+                    controller_kinematics_add_force(tmp_controller, frottements_solides, contact_sol);
+                }
+                else
+                {
+                    tmp_controller->speed = Force3(0.0, tmp_controller->speed.fy, 0.0);
+                }
             }
 
             // C'est l'heure de faire avancer les boules qui roulent
@@ -253,7 +277,7 @@ void physics_manager_update(controller_p this2)
 
             controller_kinematics_add_force(tmp_controller, rolling, contact_sol);
         }
-        else if (v > 0.01 || tmp_controller->pos.fy > 0.01)
+        else if (v > 0.01 || tmp_controller->pos.fy > 0.01 + tmp_controller->radius - 1.0)
         {
             // On applique le poids uniquement si l'objet est au-dessus du sol
             controller_kinematics_add_force(tmp_controller, Force3(0.0, -tmp_controller->mass * GRAVITY, 0.0),
@@ -265,24 +289,28 @@ void physics_manager_update(controller_p this2)
     physics_manager_update_collisions(this, nb_controllers);
 }
 
+// Destructeur /!\ ne free pas tous les controller_kinematics qu'il gère !
+void physics_manager_free(controller_p __this)
+{
+    physics_manager_p this = (physics_manager_p)__this;
+    vector_free(this->kinematic_controllers);
+    free_dict(this->colliding);
+    free(this);
+}
+
 physics_manager_p Physics_manager()
 {
     physics_manager_p this = malloc(sizeof(physics_manager_t));
     this->super.process_input = id_for_process_input;
     this->super.update = physics_manager_update;
     this->super.draw = id;
+    this->super.free = physics_manager_free;
 
     this->kinematic_controllers = vector_init();
 
     this->colliding = dict_vide(1000);
 
     return this;
-}
-
-void physics_manager_free(physics_manager_p this)
-{
-    vector_free(this->kinematic_controllers);
-    free(this);
 }
 
 void physics_manager_add_controller_kinematics(physics_manager_p this, controller_kinematics_p c)

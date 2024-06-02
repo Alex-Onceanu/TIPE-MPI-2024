@@ -113,8 +113,3 @@ void debug_dict(DICT *d);
 
 /* Libère la mémoire allouée pour d */
 void free_dict(DICT *d);
-
-//____________________Fonctionalites additionnelles___________________________
-
-// Libere les str alloues dans le tas, cles du dictionnaire d
-void free_keys(DICT *d);

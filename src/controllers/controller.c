@@ -12,17 +12,6 @@ void id_for_process_input(controller_p c, void *data)
     return;
 }
 
-controller_p Controller()
-{
-    controller_p this = malloc(sizeof(controller_t));
-
-    this->process_input = id_for_process_input;
-    this->update = id;
-    this->draw = id;
-
-    return this;
-}
-
 void controller_free(controller_p this)
 {
     free(this);

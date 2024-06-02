@@ -8,6 +8,9 @@ typedef struct controller
     void (*update)(struct controller *);
     void (*draw)(struct controller *);
 
+    // Chaque type de controlleur aura son propre destructeur
+    void(*free)(struct controller *);
+
     unsigned int program_index;
 } controller_t, *controller_p;
 
@@ -15,10 +18,7 @@ typedef struct controller
 void id(controller_p c);
 void id_for_process_input(controller_p c, void *data);
 
-// Constructeur
-controller_p Controller();
-
-// Destructeur
+// Destructeur par défaut qui ne fait que lancer free(this) 
 void controller_free(controller_p this);
 
 // Mutateur de l'attribut program_index

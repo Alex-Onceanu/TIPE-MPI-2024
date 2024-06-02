@@ -11,12 +11,10 @@ typedef struct entity
     // Le vecteur en question stocke des controller_p sous forme de void*
     vector_p controllers;
 
-    // TODO : program_index doit être stocké dans model_3D 
     // *_PROGRAM | NO_PROGRAM
     unsigned int program_index; 
 
     // Méthodes, en tant que pointeurs vers des fonctions
-
     void (*process_input)(struct entity *, void *data);
     void (*update)(struct entity *);
     void (*draw)(struct entity *);

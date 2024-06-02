@@ -33,9 +33,6 @@ physics_manager_p Physics_manager();
 
 #include "controller_kinematics.h"
 
-// Destructeur /!\ ne free pas tous les controller_kinematics qu'il gère !
-void physics_manager_free(physics_manager_p this);
-
 void physics_manager_add_controller_kinematics(physics_manager_p this, controller_kinematics_p c);
 
 #endif

@@ -5,11 +5,6 @@
 #include "maths.h"
 #include "constantes.h"
 
-float my_sqrtf(float x)
-{
-    // TODO
-    return sqrtf(x);
-}
 
 int randint(int a, int b)
 {
@@ -19,6 +14,11 @@ int randint(int a, int b)
 float f_max(float x, float y)
 {
     return x > y ? x : y;
+}
+
+float f_abs(float x)
+{
+    return x > 0.0 ? x : -x;
 }
 
 void Clamp(float *x, float min_x, float max_x)
@@ -71,7 +71,7 @@ force3_t force3_cross_product(force3_t f1, force3_t f2)
 
 float norme2(force3_t f)
 {
-    return my_sqrtf(SQ_NORME2(f));
+    return sqrtf(SQ_NORME2(f));
 }
 
 void normalize(force3_p f)
@@ -183,8 +183,6 @@ mat4_t mat4_scalaire(const mat4_t m, const float k)
 
 mat4_t mat4_produit(const mat4_t m1, const mat4_t m2)
 {
-    // TODO : algo de Strassen pour la multiplication
-
     mat4_t res;
 
     for (int i = 0; i < 4; ++i)
@@ -352,7 +350,7 @@ mat4_t mat4_rotation(force3_t axe, mat4_t* passage)
     {
         // Si on entre dans ce if la rotation est nécessairement autour de Oz
         // La matrice de passage est alors celle qui place vec{e_x} sur + ou - vec{e_z}
-        if(passage != NULL) *passage = rotation_y_4(- (theta.fz / fabs(theta.fz)) * PI / 2.0);
+        if(passage != NULL) *passage = rotation_y_4(- (theta.fz / f_abs(theta.fz)) * PI / 2.0);
 
         return rotation_z_4(angle);
     }

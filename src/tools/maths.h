@@ -4,16 +4,14 @@
 #include <math.h>
 
 #define SQUARED(x) ((x) * (x))
-#define ABS(x) (x > 0 ? x : -x)
-
-// Mon implémentation de la racine carrée (avec méthode d'Euler)
-float my_sqrtf(float x);
 
 // Renvoie un nombre aleatoire de [| a, b |] (Ne pas oublier l'appel de srand avant)
 int randint(int a, int b);
 
 // Fait en sorte que x reste dans [ min_x, max_x ]
 void Clamp(float *x, float min_x, float max_x);
+
+float f_abs(float x);
 
 // _______________________________Vecteur force________________________________
 
@@ -50,9 +48,6 @@ void normalize(force3_p f);
 #define DOT_PRODUCT(u, v) (u.fx * v.fx + u.fy * v.fy + u.fz * v.fz)
 
 force3_t force3_cross_product(force3_t f1, force3_t f2);
-
-// Renvoie u.v, donc u.x v.x + u.y v.y + u.z v.z
-// float produit_scalaire(force3_t u, force3_t v);
 
 // _______________________________Matrice________________________________
 
