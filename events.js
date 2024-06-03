@@ -1,12 +1,12 @@
 var finished_loading = false;
+console.log("Chargement en cours, veuillez patienter...\n");
 
-onLoad = function (e) {
-    console.log("Hello world !\n");
+onload = function (e) {
+    console.log("Chargement terminé !\n");
     Module.onRuntimeInitialized = () => { finished_loading = true; };
 }
 
-onExit = function (e) {
-    console.log("Bye bye !\n");
+onexit = function (e) {
     Module.ccall('free_everything');
 }
 
@@ -26,7 +26,6 @@ function clamp(pos, min_x, max_x, min_y, max_y) {
 }
 
 onmousedown = function (e) {
-    console.log("finished loading ? " + (finished_loading ? "yes\n" : "no\n"));
     if (!finished_loading) return;
     Module.ccall('mouse_down');
 }

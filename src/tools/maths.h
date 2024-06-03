@@ -13,6 +13,8 @@ void Clamp(float *x, float min_x, float max_x);
 
 float f_abs(float x);
 
+float f_max(float x, float y);
+
 // _______________________________Vecteur force________________________________
 
 // Vecteur 3D au sens physique de terme. On l'appelle force3 pour "vecteur force en 3D"

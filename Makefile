@@ -10,7 +10,7 @@ make: ./src/
 		-s MIN_WEBGL_VERSION=3 	\
 		-s ALLOW_MEMORY_GROWTH 	\
 		--preload-file ./res/  	\
-		-O2
+		-O3
 
 clean:
 	rm main.wasm main.js
